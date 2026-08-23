@@ -1,0 +1,2207 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Showtime — Classroom Game Show</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+  :root{
+    --ink:#15122a;
+    --ink-2:#1e1a3a;
+    --curtain:#2d2650;
+    --curtain-light:#3d3468;
+    --purple:#a78bfa;
+    --purple-bright:#c4b5fd;
+    --purple-dark:#7c5cfc;
+    --coral:#ff6b8a;
+    --teal:#4adeb0;
+    --amber:#ffc107;
+    --paper:#f5f0ff;
+    --paper-dim:rgba(245,240,255,.65);
+    --paper-faint:rgba(245,240,255,.38);
+    --line:rgba(245,240,255,.12);
+    --wood-dark:#2c1a10;
+    --wood-mid:#5c3a22;
+    --wood-light:#8a5a35;
+    --wood-x1:#b0221b;
+    --wood-x2:#e6503f;
+    --wood-o:#161311;
+    --font-display:'Fraunces',serif;
+    --font-body:'Manrope',sans-serif;
+    --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--font-body);
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
+  }
+  body::before{
+    content:'';
+    position:fixed;inset:0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(167,139,250,.18), transparent 60%),
+      radial-gradient(ellipse 50% 35% at 85% 90%, rgba(124,92,252,.12), transparent 60%),
+      radial-gradient(ellipse 40% 30% at 5% 85%, rgba(74,222,176,.07), transparent 60%);
+    pointer-events:none;z-index:0;
+  }
+  #app{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+  ::selection{background:var(--purple);color:var(--ink)}
+  button{font-family:inherit;cursor:pointer}
+  input,textarea,select{font-family:inherit}
+  :focus-visible{outline:3px solid var(--purple);outline-offset:2px}
+
+  .screen{display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;animation:fadeUp .5s ease both}
+  .screen.active{display:flex}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  @media(prefers-reduced-motion:reduce){.screen{animation:none}*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+  .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--purple);margin:0 0 14px}
+  h1,h2,h3{font-family:var(--font-display);margin:0;font-weight:600}
+
+  .brand-tag{position:fixed;top:26px;right:26px;z-index:5;font-family:var(--font-mono);font-size:12px;letter-spacing:.12em;color:var(--paper-faint);text-transform:uppercase;display:none;pointer-events:none}
+
+  /* Welcome */
+  .marquee-wrap{text-align:center;max-width:720px}
+  .marquee-lights{display:flex;justify-content:center;gap:10px;margin-bottom:28px}
+  .bulb{width:9px;height:9px;border-radius:50%;background:var(--purple);box-shadow:0 0 10px 2px rgba(167,139,250,.7);animation:blink 1.8s ease-in-out infinite}
+  .bulb:nth-child(odd){animation-delay:.3s}
+  .bulb:nth-child(3n){animation-delay:.6s}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+  .marquee-title{font-size:clamp(42px,8vw,88px);line-height:1.02;font-weight:700;letter-spacing:-.01em}
+  .marquee-title em{font-style:italic;font-weight:600;background:linear-gradient(90deg,var(--purple-bright),var(--purple-dark));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .marquee-sub{font-size:17px;color:var(--paper-dim);margin:20px auto 40px;max-width:480px;line-height:1.6}
+
+  .btn{border:none;border-radius:100px;padding:16px 34px;font-size:15px;font-weight:700;letter-spacing:.01em;transition:transform .15s ease,box-shadow .15s ease,background .15s ease;display:inline-flex;align-items:center;gap:10px}
+  .btn-primary{background:var(--purple);color:var(--ink);box-shadow:0 0 0 0 rgba(167,139,250,.5)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px -8px rgba(167,139,250,.55)}
+  .btn-primary:active{transform:translateY(0)}
+  .btn-ghost{background:transparent;color:var(--paper);border:1.5px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--paper-dim);transform:translateY(-2px)}
+  .btn-ghost.active-tab{background:rgba(167,139,250,.16);border-color:var(--purple);color:var(--purple-bright)}
+  .btn-coral{background:var(--coral);color:var(--ink)}
+  .btn-coral:hover{transform:translateY(-2px);box-shadow:0 10px 24px -8px rgba(255,107,138,.5)}
+  .btn-teal{background:var(--teal);color:var(--ink)}
+  .btn-teal:hover{transform:translateY(-2px);box-shadow:0 10px 24px -8px rgba(74,222,176,.5)}
+  .btn-danger{background:rgba(255,107,138,.14);color:var(--coral);border:1.5px solid rgba(255,107,138,.35)}
+  .btn-danger:hover{background:rgba(255,107,138,.22);transform:translateY(-2px)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+  .btn-sm{padding:10px 20px;font-size:13px}
+  .btn-xs{padding:7px 14px;font-size:12px;border-radius:100px}
+
+  .back-btn{position:fixed;top:24px;left:24px;z-index:5;background:rgba(245,240,255,.06);border:1px solid var(--line);color:var(--paper-dim);border-radius:100px;padding:9px 16px 9px 12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+  .back-btn:hover{color:var(--paper);border-color:var(--paper-dim)}
+
+  /* Category */
+  .cat-header{text-align:center;margin-bottom:44px}
+  .cat-header h2{font-size:clamp(30px,4.5vw,44px)}
+  .cat-grid{display:grid;grid-template-columns:repeat(3,minmax(160px,200px));gap:18px;max-width:720px;justify-content:center}
+  @media(max-width:700px){.cat-grid{grid-template-columns:repeat(2,150px)}}
+  .cat-card{background:var(--curtain);border:1.5px solid var(--line);border-radius:20px;padding:26px 18px;text-align:center;transition:transform .18s ease,border-color .18s ease,background .18s ease;color:var(--paper);cursor:pointer}
+  .cat-card:hover{transform:translateY(-4px);border-color:var(--purple);background:var(--curtain-light)}
+  .cat-icon{width:52px;height:52px;margin:0 auto 16px;border-radius:14px;background:rgba(167,139,250,.14);display:flex;align-items:center;justify-content:center;font-size:22px;gap:2px}
+  .cat-name{font-family:var(--font-display);font-weight:600;font-size:17px}
+  .cat-tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-faint);margin-top:6px;display:block}
+
+  /* Role */
+  .role-grid{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;max-width:640px}
+  .role-card{width:260px;padding:36px 28px;background:var(--curtain);border:1.5px solid var(--line);border-radius:22px;text-align:left;color:var(--paper);transition:transform .18s ease,border-color .18s ease;cursor:pointer}
+  .role-card:hover{transform:translateY(-4px);border-color:var(--purple)}
+  .role-icon{font-size:30px;margin-bottom:18px;display:block}
+  .role-card h3{font-size:22px;margin-bottom:8px}
+  .role-card p{color:var(--paper-dim);font-size:13.5px;line-height:1.55;margin:0}
+
+  /* Panel / forms */
+  .panel{background:var(--curtain);border:1.5px solid var(--line);border-radius:24px;padding:40px;width:100%;max-width:440px}
+  .panel-wide{max-width:640px}
+  .panel-xwide{max-width:920px}
+  .field{margin-bottom:18px;text-align:left}
+  .field label{display:block;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-faint);margin-bottom:8px}
+  .field input,.field select,.field textarea{width:100%;background:rgba(245,240,255,.06);border:1.5px solid var(--line);border-radius:12px;padding:13px 16px;color:var(--paper);font-size:15px;transition:border-color .15s ease,background .15s ease}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--purple);background:rgba(245,240,255,.09);outline:none}
+  .field input.code-input{font-family:var(--font-mono);letter-spacing:.25em;text-align:center;font-size:22px;text-transform:uppercase}
+  .hint{font-size:12.5px;color:var(--paper-faint);margin-top:8px}
+  .error-msg{color:var(--coral);font-size:13px;margin-top:10px;display:none;font-weight:600}
+  .error-msg.show{display:block}
+  .success-msg{color:var(--teal);font-size:13px;margin-top:10px;display:none;font-weight:600}
+  .success-msg.show{display:block}
+
+  /* Code board */
+  .code-board{text-align:center;margin:20px 0 20px}
+  .code-board-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--paper-faint);margin-bottom:12px}
+  .code-digits{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .code-digit{width:44px;height:56px;background:var(--ink);border:1.5px solid rgba(167,139,250,.35);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:26px;font-weight:600;color:var(--purple);box-shadow:inset 0 0 14px rgba(167,139,250,.12)}
+
+  /* Waiting */
+  .waiting-wrap{text-align:center;max-width:520px;width:100%}
+  .pulse-dot{width:10px;height:10px;border-radius:50%;background:var(--teal);display:inline-block;margin-right:8px;animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+  .player-list{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:28px 0;min-height:44px}
+  .player-chip{background:var(--curtain);border:1.5px solid var(--line);border-radius:100px;padding:9px 16px 9px 12px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:8px;animation:popIn .3s ease both}
+  @keyframes popIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+  .player-avatar{width:22px;height:22px;border-radius:50%;background:var(--purple);color:var(--ink);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800}
+  .empty-note{color:var(--paper-faint);font-size:13.5px;padding:12px 0}
+
+  /* Quiz builder */
+  .q-block{background:rgba(245,240,255,.04);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:16px;text-align:left}
+  .q-block-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .q-num{font-family:var(--font-mono);font-size:12px;color:var(--purple);letter-spacing:.06em}
+  .opt-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+  .opt-letter{width:32px;height:32px;border-radius:8px;background:rgba(245,240,255,.06);border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--paper-dim);flex-shrink:0;cursor:pointer;transition:all .15s ease}
+  .opt-row.correct .opt-letter{background:var(--teal);border-color:var(--teal);color:var(--ink)}
+  .opt-row input{flex:1}
+
+  /* Live play */
+  .qplay-wrap{width:100%;max-width:640px}
+  .qplay-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;font-family:var(--font-mono);font-size:12px;color:var(--paper-faint);letter-spacing:.06em;text-transform:uppercase}
+  .qplay-question{font-family:var(--font-display);font-size:clamp(24px,4vw,34px);font-weight:600;margin-bottom:32px;line-height:1.25}
+  .qplay-options{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:560px){.qplay-options{grid-template-columns:1fr}}
+  .opt-btn{background:var(--curtain);border:1.5px solid var(--line);border-radius:16px;padding:20px;text-align:left;color:var(--paper);font-size:15.5px;font-weight:600;display:flex;align-items:center;gap:14px;transition:all .15s ease;cursor:pointer}
+  .opt-btn:hover:not(:disabled){border-color:var(--purple);transform:translateY(-2px)}
+  .opt-btn:disabled{cursor:default}
+  .opt-btn .opt-letter{background:rgba(245,240,255,.06)}
+  .opt-btn.selected{border-color:var(--purple);background:rgba(167,139,250,.12)}
+  .opt-btn.correct{border-color:var(--teal);background:rgba(74,222,176,.14)}
+  .opt-btn.wrong{border-color:var(--coral);background:rgba(255,107,138,.12)}
+  .opt-btn.correct .opt-letter{background:var(--teal);color:var(--ink)}
+  .opt-btn.wrong .opt-letter{background:var(--coral);color:var(--ink)}
+
+  .status-banner{text-align:center;font-weight:700;font-size:15px;padding:14px;border-radius:100px;margin-top:24px;background:rgba(245,240,255,.06)}
+  .status-banner.correct{background:rgba(74,222,176,.16);color:var(--teal)}
+  .status-banner.wrong{background:rgba(255,107,138,.16);color:var(--coral)}
+
+  /* Leaderboard (end of game, full) */
+  .board-list{width:100%;max-width:480px;text-align:left;margin:0 auto 8px}
+  .board-row{display:flex;align-items:center;gap:16px;padding:16px 18px;border-radius:14px;margin-bottom:10px;background:var(--curtain);border:1.5px solid var(--line);animation:boardIn .4s ease both}
+  .board-row.rank-1{border-color:rgba(255,215,0,.55);background:rgba(255,215,0,.08)}
+  .board-row.rank-2{border-color:rgba(192,192,192,.45);background:rgba(192,192,192,.06)}
+  .board-row.rank-3{border-color:rgba(205,127,50,.45);background:rgba(205,127,50,.06)}
+  .board-row.me{box-shadow:0 0 0 2px var(--purple)}
+  .board-rank{font-family:var(--font-display);font-weight:700;font-size:20px;width:36px;color:var(--paper-dim);text-align:center}
+  .rank-1 .board-rank{color:#ffd700}
+  .rank-2 .board-rank{color:#c0c0c0}
+  .rank-3 .board-rank{color:#cd7f32}
+  .board-name{flex:1;font-weight:700;font-size:15px}
+  .board-score{font-family:var(--font-mono);font-weight:600;color:var(--purple);min-width:48px;text-align:right}
+  .board-status{font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:4px 10px;border-radius:100px;margin-left:8px}
+  .board-status.passed{background:rgba(74,222,176,.18);color:var(--teal)}
+  .board-status.failed{background:rgba(255,107,138,.18);color:var(--coral)}
+  .board-status.draw{background:rgba(255,193,7,.18);color:var(--amber)}
+  .board-progress{font-size:12px;color:var(--paper-faint);margin-left:6px}
+  @keyframes boardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .actions-row{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;justify-content:center}
+
+  /* Mini / live leaderboard shown during play */
+  .mini-leaderboard{background:var(--curtain);border:1.5px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:22px}
+  .mini-leaderboard-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-faint)}
+  .mini-leaderboard-list{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
+  .mini-lb-item{display:flex;align-items:center;gap:7px;background:rgba(245,240,255,.05);border:1px solid var(--line);border-radius:100px;padding:6px 12px 6px 6px;flex-shrink:0;font-size:12.5px;font-weight:700;white-space:nowrap}
+  .mini-lb-item.me{border-color:var(--purple);box-shadow:0 0 0 1px var(--purple)}
+  .mini-lb-rank{width:20px;height:20px;border-radius:50%;background:rgba(167,139,250,.16);color:var(--purple);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;flex-shrink:0}
+  .mini-lb-item.top1 .mini-lb-rank{background:#ffd700;color:#2c1a10}
+  .mini-lb-item.top2 .mini-lb-rank{background:#c0c0c0;color:#241f3d}
+  .mini-lb-item.top3 .mini-lb-rank{background:#cd7f32;color:#241f3d}
+
+  /* Game extras */
+  .wheel-container{position:relative;width:260px;height:260px;margin:0 auto 1.5rem}
+  .wheel{width:100%;height:100%;border-radius:50%;border:5px solid var(--purple);transition:transform 4s cubic-bezier(.17,.67,.12,.99)}
+  .wheel-pointer{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-top:22px solid var(--coral);z-index:5}
+  .race-bar-bg{height:26px;background:rgba(245,240,255,.08);border-radius:999px;overflow:hidden}
+  .race-bar-fill{height:100%;background:linear-gradient(90deg,var(--purple-dark),var(--purple));border-radius:999px;transition:width .5s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;color:var(--ink);font-size:.75rem;font-weight:700;min-width:28px}
+  .timer-display{font-size:2rem;font-weight:800;color:var(--purple);text-align:center;margin-bottom:1rem;font-family:var(--font-mono)}
+  .timer-display.urgent{color:var(--coral);animation:pulse .5s infinite}
+
+  /* Stick-O Grab */
+  .sticko-header{text-align:center;margin-bottom:20px}
+  .sticko-header h2{font-family:var(--font-display);font-size:clamp(24px,4vw,30px);margin-bottom:6px}
+  .sticko-score{font-family:var(--font-mono);font-size:14px;color:var(--paper-dim);margin-bottom:4px}
+  .sticko-score strong{color:var(--purple);font-size:18px}
+  .sticko-pass{font-size:13px;color:var(--paper-faint)}
+  .sticko-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:12px;max-width:560px;margin:0 auto 24px;justify-items:center}
+  @media(min-width:700px){.sticko-grid{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}}
+  @media(max-width:480px){.sticko-grid{grid-template-columns:repeat(3,1fr);gap:10px}}
+  .sticko-piece{width:100%;aspect-ratio:1;max-width:90px;border-radius:16px;border:2px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:28px;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,opacity .25s ease,filter .25s ease;background:var(--curtain);position:relative;user-select:none}
+  .sticko-piece:hover:not(.used):not(.disabled){transform:translateY(-4px) scale(1.05);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+  .sticko-piece:active:not(.used){transform:scale(.96)}
+  .sticko-piece.used{opacity:.38;filter:grayscale(.6);cursor:default;pointer-events:none}
+  .sticko-piece.used::after{content:'✓';position:absolute;bottom:6px;right:8px;font-size:14px;color:var(--teal);font-weight:800}
+  .sticko-piece.selected{animation:stickoPop .45s ease}
+  @keyframes stickoPop{0%{transform:scale(1)}40%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .sticko-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.04em;color:var(--paper-faint);margin-top:4px}
+  .sticko-q-wrap{animation:fadeUp .35s ease both}
+  .sticko-feedback{text-align:center;padding:28px 16px;animation:fadeUp .35s ease both}
+  .sticko-feedback .big{font-size:clamp(26px,5vw,38px);font-family:var(--font-display);margin-bottom:10px}
+  .sticko-feedback .pts{font-family:var(--font-mono);font-size:19px;font-weight:700}
+  .sticko-feedback.correct .big{color:var(--teal)}
+  .sticko-feedback.wrong .big{color:var(--coral)}
+
+  /* Tic-Tac-Toe */
+  .ttt-header{text-align:center;margin-bottom:20px}
+  .ttt-header h2{font-family:var(--font-display);font-size:clamp(24px,4vw,30px);margin-bottom:8px}
+  .ttt-sub{color:var(--paper-dim);font-size:13.5px;max-width:420px;margin:0 auto 10px;line-height:1.5}
+  .ttt-score{font-family:var(--font-mono);font-size:14px;color:var(--paper-dim)}
+  .ttt-score strong{color:var(--purple);font-size:18px}
+  .ttt-board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:340px;margin:0 auto;padding:14px;background:linear-gradient(160deg,var(--wood-mid),var(--wood-dark));border-radius:22px;border:4px solid var(--wood-dark);box-shadow:0 16px 36px rgba(0,0,0,.4),inset 0 0 24px rgba(0,0,0,.35)}
+  .ttt-board.mini{max-width:120px;gap:4px;padding:6px;border-radius:10px;border-width:2px}
+  .ttt-cell{aspect-ratio:1;border-radius:12px;border:2px solid rgba(0,0,0,.35);background:repeating-linear-gradient(115deg,var(--wood-light),var(--wood-light) 6px,#7a4f2e 6px,#7a4f2e 12px);display:flex;align-items:center;justify-content:center;position:relative;box-shadow:inset 0 0 10px rgba(0,0,0,.35),0 2px 4px rgba(0,0,0,.25);transition:transform .12s ease,filter .12s ease}
+  .ttt-board.mini .ttt-cell{border-radius:4px;border-width:1px}
+  .ttt-cell:not(:disabled):hover{transform:translateY(-2px) scale(1.03);filter:brightness(1.12)}
+  .ttt-cell:disabled{cursor:default}
+  .ttt-cell .mark-shape{position:relative;width:58%;height:58%}
+  .ttt-cell.mark-x .mark-shape::before,.ttt-cell.mark-x .mark-shape::after{content:'';position:absolute;top:50%;left:0;width:100%;height:16%;border-radius:8px;background:linear-gradient(90deg,var(--wood-x1),var(--wood-x2));box-shadow:0 3px 6px rgba(0,0,0,.45)}
+  .ttt-cell.mark-x .mark-shape::before{transform:translateY(-50%) rotate(45deg)}
+  .ttt-cell.mark-x .mark-shape::after{transform:translateY(-50%) rotate(-45deg)}
+  .ttt-cell.mark-o .mark-shape{border-radius:50%;border:12px solid var(--wood-o);box-shadow:inset 0 0 0 3px rgba(255,255,255,.08),0 3px 6px rgba(0,0,0,.45)}
+  .ttt-board.mini .ttt-cell.mark-o .mark-shape{border-width:4px}
+  .mark-choice-row{display:flex;gap:16px;justify-content:center;margin-top:8px}
+  .mark-choice-btn{width:88px;height:88px;border-radius:20px;background:var(--curtain);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:34px;font-weight:700;color:var(--paper);transition:all .15s ease}
+  .mark-choice-btn:hover{border-color:var(--purple);transform:translateY(-3px)}
+
+  /* Challenge card */
+  .challenge-card{background:linear-gradient(160deg,rgba(255,193,7,.14),rgba(255,107,138,.08));border:1.5px solid rgba(255,193,7,.4);border-radius:20px;padding:30px 26px;text-align:center;max-width:480px;margin:0 auto}
+  .challenge-card .cbolt{font-size:30px;margin-bottom:10px}
+  .challenge-card h3{font-size:22px;margin-bottom:14px}
+  .challenge-card p.ctext{font-size:16px;color:var(--paper-dim);margin-bottom:18px;line-height:1.5}
+
+  /* Auth */
+  .auth-tabs{display:flex;gap:8px;margin-bottom:26px}
+  .auth-tabs button{flex:1;justify-content:center}
+
+  /* Dashboard */
+  .dash-head{display:flex;justify-content:space-between;align-items:flex-start;width:100%;max-width:920px;margin-bottom:32px;flex-wrap:wrap;gap:14px}
+  .dash-section-title{font-family:var(--font-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--paper-faint);margin:30px 0 16px;width:100%;max-width:920px}
+  .game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;width:100%;max-width:920px}
+  .game-card{background:var(--curtain);border:1.5px solid var(--line);border-radius:18px;padding:22px;text-align:left}
+  .game-card h4{font-family:var(--font-display);font-size:18px;margin-bottom:6px}
+  .game-card .gc-meta{font-size:12.5px;color:var(--paper-faint);margin-bottom:16px}
+  .game-card .gc-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .hist-row{background:var(--curtain);border:1.5px solid var(--line);border-radius:16px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+  .hist-row .hi-name{font-weight:700}
+  .hist-row .hi-meta{font-size:12.5px;color:var(--paper-faint)}
+
+  /* Teacher monitor */
+  .monitor-wrap{width:100%;max-width:960px}
+  .monitor-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;margin-bottom:20px}
+  .monitor-stat{font-family:var(--font-mono);font-size:12px;color:var(--paper-faint);text-transform:uppercase;letter-spacing:.06em}
+  .monitor-stat strong{color:var(--purple-bright);font-size:15px;display:block;font-family:var(--font-display);text-transform:none;letter-spacing:0}
+  .live-dot{width:9px;height:9px;border-radius:50%;background:var(--coral);display:inline-block;margin-right:6px;animation:pulse 1.2s ease-in-out infinite}
+  .mon-table-wrap{width:100%;overflow-x:auto;border:1.5px solid var(--line);border-radius:18px}
+  table.mon-table{width:100%;border-collapse:collapse;min-width:640px}
+  table.mon-table th{text-align:left;font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper-faint);padding:12px 14px;border-bottom:1px solid var(--line);background:rgba(245,240,255,.03)}
+  table.mon-table td{padding:12px 14px;border-bottom:1px solid var(--line);font-size:13.5px}
+  table.mon-table tr:last-child td{border-bottom:none}
+  table.mon-table tr.me-row{background:rgba(167,139,250,.06)}
+  .pill{display:inline-block;padding:3px 10px;border-radius:100px;font-family:var(--font-mono);font-size:10.5px;font-weight:700;text-transform:uppercase}
+  .pill.ok{background:rgba(74,222,176,.18);color:var(--teal)}
+  .pill.bad{background:rgba(255,107,138,.18);color:var(--coral)}
+  .pill.wait{background:rgba(245,240,255,.08);color:var(--paper-faint)}
+  .mon-board-cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+
+  .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--curtain-light);border:1px solid var(--line);padding:13px 22px;border-radius:100px;font-size:13.5px;font-weight:600;opacity:0;pointer-events:none;transition:all .3s ease;z-index:50;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .footer-note{margin-top:26px;font-size:12px;color:var(--paper-faint)}
+  .score-circle{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,var(--purple-dark),var(--purple));color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 1.3rem;box-shadow:0 10px 28px rgba(124,92,252,.3)}
+  .score-circle .score-num{font-size:2.4rem;font-weight:800;line-height:1;font-family:var(--font-display)}
+  .score-circle .score-label{font-size:.8rem;opacity:.85;font-weight:600}
+  .pass-badge{display:inline-block;margin-top:8px;padding:6px 14px;border-radius:100px;font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:.04em}
+  .pass-badge.passed{background:rgba(74,222,176,.2);color:var(--teal)}
+  .pass-badge.failed{background:rgba(255,107,138,.2);color:var(--coral)}
+  .pass-badge.draw{background:rgba(255,193,7,.2);color:var(--amber)}
+  .setup-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px 24px}
+  .setup-wrap ol{color:var(--paper-dim);line-height:1.9;padding-left:22px;margin-bottom:18px;font-size:14.5px}
+  .setup-wrap code{background:rgba(245,240,255,.08);padding:2px 7px;border-radius:6px;font-family:var(--font-mono);font-size:13px;color:var(--purple-bright)}
+  .setup-wrap a{color:var(--purple);font-weight:600}
+  </style>
+  </head>
+  <body>
+
+  <!-- FIREBASE SDK (compat build — keeps the rest of the code as plain global functions) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <!-- ONE-TIME SETUP SCREEN: shown only until you paste your Firebase config below -->
+  <div id="setup-required" style="display:none" class="setup-wrap">
+    <div class="panel panel-wide" style="text-align:left">
+      <p class="eyebrow">One-time setup</p>
+      <h2 style="font-size:26px;margin-bottom:16px">Connect a free Firebase database to go live</h2>
+      <p style="color:var(--paper-dim);margin-bottom:16px">Right now this file has no database connected, so students on their own phones or laptops can't join. Takes about 5 minutes, completely free at classroom scale:</p>
+      <ol>
+        <li>Go to <a href="https://console.firebase.google.com" target="_blank" rel="noopener">console.firebase.google.com</a> and create a new project (name it anything, e.g. "showtime-game").</li>
+        <li>In the left sidebar under <b>Build</b>, click <b>Realtime Database</b> → <b>Create Database</b> → choose a location → start in <b>test mode</b>.</li>
+        <li>Click the ⚙️ gear icon → <b>Project settings</b>, scroll to "Your apps", click the <b>&lt;/&gt;</b> (Web) icon, and register an app (no need for Firebase Hosting).</li>
+        <li>Copy the <code>firebaseConfig</code> object shown on screen.</li>
+        <li>Open this HTML file in a text editor, find <code>const firebaseConfig = {</code> near the top of the script, and paste your values in place of the placeholders.</li>
+        <li>Save the file and reload this page (or re-upload it wherever you're hosting it).</li>
+      </ol>
+      <p style="color:var(--paper-faint);font-size:13px">This screen disappears automatically once a valid config is detected. See the reply in chat for a suggested database security rule to paste in as well.</p>
+    </div>
+  </div>
+
+  <div id="app">
+  <div class="brand-tag" id="brand-tag">🎬 Showtime</div>
+
+  <!-- WELCOME -->
+  <section class="screen active" id="screen-welcome">
+    <div class="marquee-wrap">
+      <div class="marquee-lights">
+        <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+        <span class="bulb"></span><span class="bulb"></span><span class="bulb"></span>
+        <span class="bulb"></span>
+      </div>
+      <h1 class="marquee-title">Welcome to<br><em>Showtime</em></h1>
+      <p class="marquee-sub">The classroom game show. Teachers host, students play — pick a category, get a code, and go live in seconds.</p>
+      <button class="btn btn-primary" onclick="go('category')">Get Started →</button>
+    </div>
+  </section>
+
+  <!-- CATEGORY -->
+  <section class="screen" id="screen-category">
+    <button class="back-btn" onclick="backFromCategory()">← Back</button>
+    <div class="cat-header">
+      <p class="eyebrow" id="category-eyebrow">Step 1 of 3</p>
+      <h2>Choose a category</h2>
+    </div>
+    <div class="cat-grid">
+      <button class="cat-card" onclick="selectCategory('quiz')"><div class="cat-icon">📝</div><div class="cat-name">Quiz</div><span class="cat-tag">Multiple choice</span></button>
+      <button class="cat-card" onclick="selectCategory('spin')"><div class="cat-icon">🎡</div><div class="cat-name">Spin & Answer</div><span class="cat-tag">Wheel + quiz</span></button>
+      <button class="cat-card" onclick="selectCategory('brain')"><div class="cat-icon">🧠</div><div class="cat-name">Brain Crush</div><span class="cat-tag">Timed questions</span></button>
+      <button class="cat-card" onclick="selectCategory('tiktak')"><div class="cat-icon">❌⭕</div><div class="cat-name">Tiktak Toe</div><span class="cat-tag">3x3 trivia board</span></button>
+      <button class="cat-card" onclick="selectCategory('sticko')"><div class="cat-icon">🍫</div><div class="cat-name">Stick-O Grab</div><span class="cat-tag">Pick • Answer • Score</span></button>
+      <button class="cat-card" onclick="selectCategory('race')"><div class="cat-icon">🏁</div><div class="cat-name">Race to Finish</div><span class="cat-tag">Progress race</span></button>
+    </div>
+  </section>
+
+  <!-- ROLE -->
+  <section class="screen" id="screen-role">
+    <button class="back-btn" onclick="go('category')">← Back</button>
+    <div class="cat-header">
+      <p class="eyebrow">Step 2 of 3</p>
+      <h2>Who's playing?</h2>
+    </div>
+    <div class="role-grid">
+      <button class="role-card" onclick="chooseRole('teacher')"><span class="role-icon">👩‍🏫</span><h3>I'm the teacher</h3><p>Sign in to your account, build content, and host the show.</p></button>
+      <button class="role-card" onclick="chooseRole('student')"><span class="role-icon">🙋</span><h3>I'm a student</h3><p>Enter the code your teacher gives you and jump in.</p></button>
+    </div>
+  </section>
+
+  <!-- STUDENT JOIN -->
+  <section class="screen" id="screen-student-join">
+    <button class="back-btn" onclick="go('role')">← Back</button>
+    <div class="panel">
+      <p class="eyebrow">Join a game</p>
+      <h2 style="font-size:26px;margin-bottom:24px">Enter your details</h2>
+      <div class="field"><label for="in-join-code">Game code</label><input id="in-join-code" class="code-input" maxlength="6" placeholder="ABC123" autocomplete="off"></div>
+      <div class="field"><label for="in-join-name">Your name</label><input id="in-join-name" placeholder="e.g. Jomari" maxlength="20" autocomplete="off"></div>
+      <p class="error-msg" id="join-error"></p>
+      <button class="btn btn-coral" id="btn-submit-join" style="width:100%;justify-content:center" onclick="submitJoin()">Join game →</button>
+    </div>
+  </section>
+
+  <!-- STUDENT WAITING -->
+  <section class="screen" id="screen-student-waiting">
+    <button class="back-btn" onclick="leaveWaitingRoom()">← Leave</button>
+    <div class="waiting-wrap">
+      <p class="eyebrow"><span class="pulse-dot"></span>Connected</p>
+      <h2 style="font-size:28px;margin-bottom:10px">You're in, <span id="student-name-display"></span>!</h2>
+      <p style="color:var(--paper-dim);font-size:14.5px">Waiting for your teacher to start the game…</p>
+      <div class="player-list" id="student-view-players"></div>
+      <p class="footer-note">Game code: <b id="student-code-display" style="color:var(--purple)"></b></p>
+    </div>
+  </section>
+
+  <!-- TEACHER AUTH -->
+  <section class="screen" id="screen-teacher-auth">
+    <button class="back-btn" onclick="go('role')">← Back</button>
+    <div class="panel">
+      <p class="eyebrow">Teacher account</p>
+      <h2 style="font-size:26px;margin-bottom:22px" id="auth-title">Log in to host</h2>
+      <div class="auth-tabs">
+        <button class="btn btn-ghost btn-sm active-tab" id="tab-login" onclick="switchAuthTab('login')">Log in</button>
+        <button class="btn btn-ghost btn-sm" id="tab-signup" onclick="switchAuthTab('signup')">Sign up</button>
+      </div>
+      <div id="auth-login-form">
+        <div class="field"><label for="li-username">Username</label><input id="li-username" autocomplete="username" placeholder="e.g. ms_reyes"></div>
+        <div class="field"><label for="li-password">Password</label><input id="li-password" type="password" autocomplete="current-password"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;margin-bottom:10px" onclick="teacherLogin()">Log in →</button>
+        <button class="btn btn-ghost btn-sm" style="width:100%;justify-content:center" onclick="go('teacher-forgot')">Forgot password?</button>
+      </div>
+      <div id="auth-signup-form" style="display:none">
+        <div class="field"><label for="su-name">Your name</label><input id="su-name" placeholder="e.g. Ms. Reyes" maxlength="40"></div>
+        <div class="field"><label for="su-username">Choose a username</label><input id="su-username" autocomplete="username" placeholder="letters, numbers, underscore" maxlength="24"></div>
+        <div class="field"><label for="su-password">Password</label><input id="su-password" type="password" autocomplete="new-password"></div>
+        <div class="field"><label for="su-password2">Confirm password</label><input id="su-password2" type="password" autocomplete="new-password"></div>
+        <div class="field"><label for="su-secq">Security question</label>
+          <select id="su-secq">
+            <option>Who is your first love?</option>
+            <option>Favorite color?</option>
+            <option>Your favorite person's name</option>
+          </select>
+        </div>
+        <div class="field"><label for="su-seca">Security answer</label><input id="su-seca" maxlength="60"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="teacherSignup()">Create account →</button>
+      </div>
+      <p class="error-msg" id="auth-error"></p>
+    </div>
+  </section>
+
+  <!-- TEACHER FORGOT PASSWORD -->
+  <section class="screen" id="screen-teacher-forgot">
+    <button class="back-btn" onclick="go('teacher-auth')">← Back</button>
+    <div class="panel">
+      <p class="eyebrow">Reset password</p>
+      <h2 style="font-size:24px;margin-bottom:22px">Answer your security question</h2>
+      <div id="forgot-step1">
+        <div class="field"><label for="fg-username">Username</label><input id="fg-username" autocomplete="username"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="forgotLookup()">Continue →</button>
+      </div>
+      <div id="forgot-step2" style="display:none">
+        <div class="field"><label>Security question</label><p id="fg-question" style="padding:13px 16px;background:rgba(245,240,255,.06);border-radius:12px;font-size:14.5px"></p></div>
+        <div class="field"><label for="fg-answer">Your answer</label><input id="fg-answer"></div>
+        <div class="field"><label for="fg-newpass">New password</label><input id="fg-newpass" type="password"></div>
+        <div class="field"><label for="fg-newpass2">Confirm new password</label><input id="fg-newpass2" type="password"></div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="forgotReset()">Reset password →</button>
+      </div>
+      <p class="error-msg" id="forgot-error"></p>
+      <p class="success-msg" id="forgot-success"></p>
+    </div>
+  </section>
+
+  <!-- TEACHER DASHBOARD -->
+  <section class="screen" id="screen-teacher-dashboard">
+    <div class="dash-head">
+      <div>
+        <p class="eyebrow" style="margin-bottom:6px">Teacher dashboard</p>
+        <h2 style="font-size:28px" id="dash-welcome">Welcome!</h2>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <button class="btn btn-ghost btn-sm" onclick="go('welcome')">🏠 Home</button>
+        <button class="btn btn-danger btn-sm" onclick="teacherLogout()">Log out</button>
+      </div>
+    </div>
+
+    <div style="width:100%;max-width:920px;display:flex;justify-content:space-between;align-items:center">
+      <span class="dash-section-title" style="margin:0">My games</span>
+      <button class="btn btn-teal btn-sm" onclick="startNewGameFromDashboard()">+ Create new game</button>
+    </div>
+    <div class="game-grid" id="dash-games-grid" style="margin-top:14px"></div>
+
+    <div class="dash-section-title">Game history</div>
+    <div id="dash-history-list" style="width:100%;max-width:920px"></div>
+  </section>
+
+  <!-- TEACHER GAME HISTORY DETAIL -->
+  <section class="screen" id="screen-history-detail">
+    <button class="back-btn" onclick="go('teacher-dashboard')">← Back to dashboard</button>
+    <div class="waiting-wrap" style="max-width:520px">
+      <p class="eyebrow" id="hist-detail-eyebrow">Session results</p>
+      <h2 style="font-size:26px;margin-bottom:18px" id="hist-detail-title">Results</h2>
+      <div id="hist-detail-leaderboard" style="width:100%"></div>
+    </div>
+  </section>
+
+  <!-- TEACHER CODE -->
+  <section class="screen" id="screen-teacher-code">
+    <button class="back-btn" onclick="go('teacher-dashboard')">← Back</button>
+    <div class="panel" style="text-align:center">
+      <p class="eyebrow">Room ready</p>
+      <h2 style="font-size:26px">Your game code is ready</h2>
+      <div class="code-board">
+        <div class="code-board-label">Share this with students</div>
+        <div class="code-digits" id="teacher-code-digits"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="margin-bottom:22px" onclick="copyGameCode()">📋 Copy code</button>
+      <p style="color:var(--paper-dim);font-size:13.5px;margin-bottom:26px" id="teacher-code-note">Next, build the content students will play.</p>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" id="teacher-code-next-btn" onclick="goToBuilder()">Build content →</button>
+    </div>
+  </section>
+
+  <!-- TEACHER BUILDER -->
+  <section class="screen" id="screen-teacher-builder">
+    <button class="back-btn" onclick="goBackFromBuilder()">← Back</button>
+    <div class="panel panel-wide">
+      <p class="eyebrow" id="builder-eyebrow">Content builder</p>
+      <h2 style="font-size:24px;margin-bottom:20px" id="builder-title">Create your content</h2>
+      <div id="builder-name-field" style="display:none" class="field">
+        <label for="in-game-name">Game name</label>
+        <input id="in-game-name" placeholder="e.g. Chapter 3 Review" maxlength="60">
+      </div>
+      <div id="builder-content"></div>
+      <p class="error-msg" id="form-error"></p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn btn-primary" style="flex:1;justify-content:center" id="builder-save-btn" onclick="saveAndWait()">Save & go to waiting room →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEACHER WAITING -->
+  <section class="screen" id="screen-teacher-waiting">
+    <button class="back-btn" onclick="backToBuilderFromWaiting()">← Edit content</button>
+    <div class="waiting-wrap">
+      <p class="eyebrow"><span class="pulse-dot"></span>Waiting for students</p>
+      <h2 style="font-size:28px;margin-bottom:6px">Game code: <span id="teacher-wait-code" style="color:var(--purple)"></span></h2>
+      <p style="color:var(--paper-dim);font-size:14.5px">Students join with this code. Start when ready.</p>
+      <div class="player-list" id="teacher-view-players"></div>
+      <button class="btn btn-ghost btn-sm" style="margin-bottom:16px" onclick="copyGameCode()">📋 Copy code</button><br>
+      <button class="btn btn-teal" id="btn-start-game" onclick="startGame()" disabled>Start game →</button>
+    </div>
+  </section>
+
+  <!-- TEACHER LIVE MONITOR -->
+  <section class="screen" id="screen-teacher-monitor">
+    <button class="back-btn" onclick="confirmEndFromMonitor()">← End game</button>
+    <div class="monitor-wrap">
+      <div class="monitor-head">
+        <div>
+          <p class="eyebrow" style="margin-bottom:4px"><span class="live-dot"></span>Live game monitor</p>
+          <h2 style="font-size:26px" id="mon-game-title">Game</h2>
+        </div>
+        <div style="display:flex;gap:22px;flex-wrap:wrap">
+          <div class="monitor-stat">Room code<strong id="mon-code">—</strong></div>
+          <div class="monitor-stat">Students<strong id="mon-count">0</strong></div>
+          <div class="monitor-stat">Status<strong id="mon-status">Live</strong></div>
+        </div>
+      </div>
+      <div id="mon-ttt-area" style="display:none;margin-bottom:24px"></div>
+      <div class="mon-table-wrap">
+        <table class="mon-table" id="mon-table">
+          <thead><tr><th>Rank</th><th>Student</th><th>Score</th><th>Correct</th><th>Wrong</th><th>Progress</th><th>Status</th></tr></thead>
+          <tbody id="mon-tbody"></tbody>
+        </table>
+      </div>
+      <div class="actions-row">
+        <button class="btn btn-danger" onclick="confirmEndFromMonitor()">⏹ End game</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAY (shared, students only) -->
+  <section class="screen" id="screen-play">
+    <button class="back-btn" onclick="exitGame()">← Exit game</button>
+    <div id="play-content" style="width:100%;max-width:640px"></div>
+  </section>
+
+  <!-- RESULTS / LEADERBOARD -->
+  <section class="screen" id="screen-results">
+    <div class="waiting-wrap" style="max-width:520px">
+      <div class="score-circle"><div class="score-num" id="final-score">0</div><div class="score-label">points</div></div>
+      <h2 style="font-size:28px;margin-bottom:10px" id="results-title">Great job!</h2>
+      <p style="color:var(--paper-dim);margin-bottom:12px" id="results-message">You finished the game.</p>
+      <div id="results-pass-badge"></div>
+      <div id="leaderboard-area" style="margin-top:24px;width:100%"></div>
+      <div class="actions-row">
+        <button class="btn btn-primary" onclick="resetAll()">Back to start</button>
+      </div>
+    </div>
+  </section>
+
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+  /* ============================================================
+    FIREBASE SETUP
+    Paste your project's config below (from Firebase console →
+    Project settings → Your apps → Web app → firebaseConfig).
+    Until you do, a setup screen is shown instead of the app.
+    ============================================================ */
+  const firebaseConfig = {
+    apiKey: "AIzaSyA7pOJV-sZ59xxrW6x94ISvnLKuRQ92jVc",
+    authDomain: "showtime-game.firebaseapp.com",
+    databaseURL: "https://showtime-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "showtime-game",
+    storageBucket: "showtime-game.firebasestorage.app",
+    messagingSenderId: "50264906619",
+    appId: "1:50264906619:web:a5ebacd704bba918dbfbde",
+    measurementId: "G-JR9C03XKJB"
+  };
+
+  let db = null;
+  let firebaseReady = false;
+  try{
+    if(firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY" && window.firebase){
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      firebaseReady = true;
+    }
+  }catch(e){ console.error('Firebase init failed:', e); firebaseReady = false; }
+
+  const state = {
+    category: null, role: null, code: null, isTeacher: false,
+    playerName: null, playerKey: null, questions: [], challenges: [],
+    currentQ: 0, answers: [], score: 0, timer: null, timeLeft: 0,
+    raceProgress: 0, wheelRotation: 0,
+    usedStickos: [], stickoAttempts: {}, selectedSticko: null, passingScore: 50, gameStatus: null,
+    ttt: null, currentRoom: null, _enteredPlay: false,
+    correctAnswers:0, wrongAnswers:0, questionsAnswered:0,
+    challengesTriggered:0, challengesCompleted:0,
+    /* --- teacher / account additions --- */
+    teacher: null,            // {id,name,username}
+    dashboardFlow: false,     // true while creating/editing a game from the dashboard
+    editingGameId: null,      // set when editing a saved game
+    hostingGameId: null,      // set when hosting a saved game (links room -> teacherGames)
+    hostingSaved: false,
+    pendingSecQ: null, pendingSecAns: null, pendingTeacherId: null
+  };
+
+  const LABELS = {
+    quiz: 'Quiz',
+    spin: 'Spin & Answer',
+    brain: 'Brain Crush',
+    tiktak: 'Tiktak Toe',
+    sticko: 'Stick-O Grab',
+    race: 'Race to Finish'
+  };
+
+  const STICKO_COLORS = ['🟣','🟡','🔵','🟢','🟠','🔴','🩷','🩵','⚪','🟤'];
+  const TTT_LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  const DEFAULT_CHALLENGES = [
+    {text:'Name 3 animals in 10 seconds.', timeLimit:10},
+    {text:'Spell your favorite word out loud, backwards.', timeLimit:15},
+    {text:'Do 5 jumping jacks before you continue.', timeLimit:15}
+  ];
+
+  const DEFAULT_BRAIN = [
+    {text:"What is 15 + 27?",options:["42","41","43","40"],correct:0,points:15},
+    {text:"Which planet is known as the Red Planet?",options:["Venus","Mars","Jupiter","Saturn"],correct:1,points:15},
+    {text:"How many continents are there?",options:["5","6","7","8"],correct:2,points:15},
+    {text:"What is the capital of Japan?",options:["Seoul","Beijing","Tokyo","Bangkok"],correct:2,points:15},
+    {text:"Which animal is known as the King of the Jungle?",options:["Tiger","Lion","Elephant","Bear"],correct:1,points:15},
+    {text:"What is H2O?",options:["Oxygen","Hydrogen","Water","Salt"],correct:2,points:15},
+    {text:"How many sides does a hexagon have?",options:["5","6","7","8"],correct:1,points:15},
+    {text:"What color do you get mixing red and blue?",options:["Green","Orange","Purple","Yellow"],correct:2,points:15}
+  ];
+
+  /* ===== Crypto helpers (client-side hashing — see chat notes on limits) ===== */
+  async function sha256Hex(str){
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  function randomSalt(){
+    const arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  function slugUsername(u){
+    return String(u||'').toLowerCase().trim().replace(/[^a-z0-9_\-]/g,'').slice(0,32);
+  }
+  function genId(){
+    return Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  }
+
+  /* ===== Firebase storage layer ===== */
+  function roomRef(code){ return db.ref('rooms/'+code); }
+  function teacherRef(id){ return db.ref('teachers/'+id); }
+  function teacherGamesRef(tid){ return db.ref('teacherGames/'+tid); }
+  function teacherSessionsRef(tid){ return db.ref('teacherGameSessions/'+tid); }
+
+  async function fetchRoomOnce(code){
+    const snap = await roomRef(code).once('value');
+    return snap.exists() ? snap.val() : null;
+  }
+
+  async function cleanupOldRooms(){
+    // Only ever touches temporary live "rooms" — permanent teacherGames are never cleaned up here.
+    try{
+      const snap = await db.ref('rooms').once('value');
+      const rooms = snap.val() || {};
+      const now = Date.now();
+      const MAX_AGE = 6*60*60*1000; // 6 hours
+      const updates = {};
+      Object.keys(rooms).forEach(code=>{
+        const r = rooms[code];
+        if(!r || !r.createdAt || (now-r.createdAt)>MAX_AGE) updates[code]=null;
+      });
+      if(Object.keys(updates).length) await db.ref('rooms').update(updates);
+    }catch(e){ /* best-effort; ignore permission errors */ }
+  }
+
+  async function genCode(){
+    const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code, tries=0, exists=true;
+    do{
+      code='';
+      for(let i=0;i<6;i++) code+=c[Math.floor(Math.random()*c.length)];
+      try{ exists = (await roomRef(code).once('value')).exists(); }
+      catch(e){ exists=false; }
+      tries++;
+    } while(exists && tries<20);
+    return code;
+  }
+
+  function slugifyKey(name){
+    const s = name.toLowerCase().replace(/[.#$\[\]\/]/g,'_').replace(/\s+/g,'_').replace(/[^a-z0-9_\-]/g,'');
+    return s || ('p'+Math.random().toString(36).slice(2,8));
+  }
+
+  /* ===== Live room listener ===== */
+  let roomListenerRef = null;
+  function attachRoomListener(code){
+    detachRoomListener();
+    roomListenerRef = roomRef(code);
+    roomListenerRef.on('value', snap=>{
+      const room = snap.val();
+      state.currentRoom = room;
+      onRoomUpdate(room);
+    }, err=>{ console.error('Room listener error:', err); });
+  }
+  function detachRoomListener(){
+    if(roomListenerRef){ roomListenerRef.off(); roomListenerRef=null; }
+  }
+  function onRoomUpdate(room){
+    if(!room) return;
+    const activeEl = document.querySelector('.screen.active');
+    const activeId = activeEl ? activeEl.id : '';
+    if(activeId==='screen-teacher-waiting') renderTeacherPlayersFromRoom(room);
+    if(activeId==='screen-student-waiting'){
+      renderStudentPlayersFromRoom(room);
+      if(room.status==='playing' && !state._enteredPlay){ enterPlay(room); }
+    }
+    if(activeId==='screen-play') renderMiniLeaderboard(room);
+    if(activeId==='screen-results') refreshResultsLeaderboard(room);
+    if(activeId==='screen-teacher-monitor') renderTeacherMonitor(room);
+    if(room.status==='finished' && state.isTeacher && activeId==='screen-teacher-monitor'){
+      // no-op: teacher explicitly ends the game via the End Game button
+    }
+  }
+
+  /* ===== Security / input hygiene ===== */
+  function sanitizeName(raw){
+    let s=String(raw||'').replace(/<[^>]*>/g,'').trim();
+    s=s.replace(/[^\w \-'.]/g,'');
+    return s.slice(0,20);
+  }
+  function sanitizeText(raw){
+    return String(raw||'').replace(/<[^>]*>/g,'').trim().slice(0,300);
+  }
+  function checkJoinRateLimit(){
+    const now=Date.now();
+    let data;
+    try{data=JSON.parse(sessionStorage.getItem('st_join_attempts')||'{}')}catch{data={}}
+    if(!data.windowStart||now-data.windowStart>60000){data={count:0,windowStart:now}}
+    data.count=(data.count||0)+1;
+    sessionStorage.setItem('st_join_attempts',JSON.stringify(data));
+    return data.count<=8;
+  }
+
+  function updatePlayerData(extra){
+    if(!state.code || !state.playerKey || !db) return;
+    const patch = Object.assign({
+      score: state.score,
+      correctAnswers: state.correctAnswers,
+      wrongAnswers: state.wrongAnswers,
+      questionsAnswered: state.questionsAnswered,
+      challengesTriggered: state.challengesTriggered,
+      challengesCompleted: state.challengesCompleted,
+      lastActionAt: Date.now()
+    }, extra||{});
+    db.ref(`rooms/${state.code}/players/${state.playerKey}`).update(patch).catch(()=>{});
+  }
+  function recordAnswer(correct){
+    state.questionsAnswered++;
+    if(correct) state.correctAnswers++; else state.wrongAnswers++;
+  }
+
+  function go(key){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-'+key).classList.add('active');
+    const brand=document.getElementById('brand-tag');
+    if(brand) brand.style.display = key==='welcome' ? 'none' : 'block';
+    window.scrollTo(0,0);
+  }
+  function toast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.classList.add('show');
+    clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);
+  }
+  function escapeHtml(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML}
+  function copyGameCode(){
+    if(!state.code) return;
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(state.code).then(()=>toast('Code copied!')).catch(()=>toast('Code: '+state.code));
+    } else toast('Code: '+state.code);
+  }
+
+  function backFromCategory(){
+    if(state.dashboardFlow){ state.dashboardFlow=false; go('teacher-dashboard'); }
+    else go('welcome');
+  }
+
+  function selectCategory(cat){
+    state.category=cat;
+    if(state.dashboardFlow){
+      // Creating a brand-new saved game from the dashboard — skip role selection,
+      // the teacher is already authenticated.
+      state.questions=[]; state.challenges=[]; state.editingGameId=null;
+      go('teacher-builder');
+      goToBuilder();
+    } else {
+      go('role');
+    }
+  }
+  async function chooseRole(role){
+    state.role=role;state.isTeacher=role==='teacher';
+    if(role==='student'){ go('student-join'); return; }
+    // Teacher: route through account auth instead of instantly creating a room.
+    if(state.teacher){ go('teacher-dashboard'); renderDashboard(); }
+    else { switchAuthTab('login'); go('teacher-auth'); }
+  }
+
+  /* ===================================================================
+    TEACHER AUTH
+    =================================================================== */
+  function switchAuthTab(which){
+    const l=document.getElementById('auth-login-form'), s=document.getElementById('auth-signup-form');
+    const tl=document.getElementById('tab-login'), ts=document.getElementById('tab-signup');
+    const err=document.getElementById('auth-error'); if(err){err.classList.remove('show');}
+    if(which==='login'){ l.style.display='block'; s.style.display='none'; tl.classList.add('active-tab'); ts.classList.remove('active-tab'); document.getElementById('auth-title').textContent='Log in to host'; }
+    else { l.style.display='none'; s.style.display='block'; tl.classList.remove('active-tab'); ts.classList.add('active-tab'); document.getElementById('auth-title').textContent='Create your teacher account'; }
+  }
+
+  async function teacherSignup(){
+    const err=document.getElementById('auth-error'); err.classList.remove('show');
+    const name = sanitizeText(document.getElementById('su-name').value).slice(0,40);
+    const usernameRaw = document.getElementById('su-username').value;
+    const uid = slugUsername(usernameRaw);
+    const pass = document.getElementById('su-password').value;
+    const pass2 = document.getElementById('su-password2').value;
+    const secq = document.getElementById('su-secq').value;
+    const seca = document.getElementById('su-seca').value.trim();
+
+    if(!name){err.textContent='Enter your name.';err.classList.add('show');return}
+    if(uid.length<3){err.textContent='Username must be at least 3 characters (letters, numbers, underscore).';err.classList.add('show');return}
+    if(pass.length<6){err.textContent='Password must be at least 6 characters.';err.classList.add('show');return}
+    if(pass!==pass2){err.textContent='Passwords do not match.';err.classList.add('show');return}
+    if(!seca){err.textContent="Enter a security answer — you'll need it to reset your password.";err.classList.add('show');return}
+
+    try{
+      const existing = await teacherRef(uid).once('value');
+      if(existing.exists()){err.textContent='That username is taken. Try another.';err.classList.add('show');return}
+      const salt = randomSalt();
+      const passwordHash = await sha256Hex(salt+':'+pass);
+      const ansSalt = randomSalt();
+      const securityAnswerHash = await sha256Hex(ansSalt+':'+seca.toLowerCase());
+      const record = {
+        name, username: uid, salt, passwordHash,
+        securityQuestion: secq, ansSalt, securityAnswerHash,
+        createdAt: Date.now()
+      };
+      await teacherRef(uid).set(record);
+      state.teacher = {id: uid, name, username: uid};
+      persistTeacherSession();
+      toast('Account created!');
+      go('teacher-dashboard'); renderDashboard();
+    }catch(e){
+      console.error(e);
+      err.textContent='Could not create account — check your connection.';err.classList.add('show');
+    }
+  }
+
+  async function teacherLogin(){
+    const err=document.getElementById('auth-error'); err.classList.remove('show');
+    const uid = slugUsername(document.getElementById('li-username').value);
+    const pass = document.getElementById('li-password').value;
+    if(!uid || !pass){err.textContent='Enter your username and password.';err.classList.add('show');return}
+    try{
+      const snap = await teacherRef(uid).once('value');
+      if(!snap.exists()){err.textContent='No account with that username.';err.classList.add('show');return}
+      const rec = snap.val();
+      const hash = await sha256Hex(rec.salt+':'+pass);
+      if(hash!==rec.passwordHash){err.textContent='Incorrect password.';err.classList.add('show');return}
+      state.teacher = {id: uid, name: rec.name, username: uid};
+      persistTeacherSession();
+      go('teacher-dashboard'); renderDashboard();
+    }catch(e){
+      console.error(e);
+      err.textContent='Could not log in — check your connection.';err.classList.add('show');
+    }
+  }
+
+  function persistTeacherSession(){
+    try{ localStorage.setItem('st_teacher_session', JSON.stringify(state.teacher)); }catch(e){}
+  }
+  function restoreTeacherSession(){
+    try{
+      const raw = localStorage.getItem('st_teacher_session');
+      if(raw) state.teacher = JSON.parse(raw);
+    }catch(e){}
+  }
+  function teacherLogout(){
+    state.teacher = null;
+    try{ localStorage.removeItem('st_teacher_session'); }catch(e){}
+    resetAll();
+  }
+
+  async function forgotLookup(){
+    const err=document.getElementById('forgot-error'); err.classList.remove('show');
+    const ok=document.getElementById('forgot-success'); ok.classList.remove('show');
+    const uid = slugUsername(document.getElementById('fg-username').value);
+    if(!uid){err.textContent='Enter your username.';err.classList.add('show');return}
+    try{
+      const snap = await teacherRef(uid).once('value');
+      if(!snap.exists()){err.textContent='No account with that username.';err.classList.add('show');return}
+      const rec = snap.val();
+      state.pendingTeacherId = uid;
+      document.getElementById('fg-question').textContent = rec.securityQuestion;
+      document.getElementById('forgot-step1').style.display='none';
+      document.getElementById('forgot-step2').style.display='block';
+    }catch(e){
+      console.error(e); err.textContent='Could not look up that account.';err.classList.add('show');
+    }
+  }
+  async function forgotReset(){
+    const err=document.getElementById('forgot-error'); err.classList.remove('show');
+    const uid = state.pendingTeacherId;
+    const ans = document.getElementById('fg-answer').value.trim();
+    const np = document.getElementById('fg-newpass').value;
+    const np2 = document.getElementById('fg-newpass2').value;
+    if(!uid){err.textContent='Start over — enter your username again.';err.classList.add('show');return}
+    if(np.length<6){err.textContent='New password must be at least 6 characters.';err.classList.add('show');return}
+    if(np!==np2){err.textContent='Passwords do not match.';err.classList.add('show');return}
+    try{
+      const snap = await teacherRef(uid).once('value');
+      if(!snap.exists()){err.textContent='Account not found.';err.classList.add('show');return}
+      const rec = snap.val();
+      const ansHash = await sha256Hex(rec.ansSalt+':'+ans.toLowerCase());
+      if(ansHash!==rec.securityAnswerHash){err.textContent="That answer doesn't match.";err.classList.add('show');return}
+      const salt = randomSalt();
+      const passwordHash = await sha256Hex(salt+':'+np);
+      await teacherRef(uid).update({salt, passwordHash});
+      document.getElementById('forgot-success').textContent='Password reset! You can log in now.';
+      document.getElementById('forgot-success').classList.add('show');
+      setTimeout(()=>{ go('teacher-auth'); switchAuthTab('login'); }, 1400);
+    }catch(e){
+      console.error(e); err.textContent='Could not reset the password — check your connection.';err.classList.add('show');
+    }
+  }
+
+  /* ===================================================================
+    TEACHER DASHBOARD & SAVED GAMES
+    =================================================================== */
+  async function renderDashboard(){
+    if(!state.teacher) return;
+    document.getElementById('dash-welcome').textContent = 'Welcome, '+state.teacher.name;
+    const grid = document.getElementById('dash-games-grid');
+    grid.innerHTML = '<p class="empty-note">Loading your games…</p>';
+    try{
+      const snap = await teacherGamesRef(state.teacher.id).once('value');
+      const games = snap.val() || {};
+      const ids = Object.keys(games);
+      if(!ids.length){ grid.innerHTML = '<p class="empty-note">No saved games yet — create your first one!</p>'; }
+      else{
+        grid.innerHTML='';
+        ids.sort((a,b)=>(games[b].updatedAt||0)-(games[a].updatedAt||0)).forEach(gid=>{
+          const g = games[gid];
+          const card = document.createElement('div'); card.className='game-card';
+          const when = g.updatedAt ? new Date(g.updatedAt).toLocaleDateString() : '';
+          card.innerHTML = `<h4>${escapeHtml(g.name||'Untitled game')}</h4>
+            <div class="gc-meta">${LABELS[g.category]||g.category} • ${(g.questions||[]).length} questions${when?' • Edited '+when:''}</div>
+            <div class="gc-actions">
+              <button class="btn btn-teal btn-xs" onclick="hostSavedGame('${gid}')">▶ Play</button>
+              <button class="btn btn-ghost btn-xs" onclick="editSavedGame('${gid}')">✎ Edit</button>
+              <button class="btn btn-danger btn-xs" onclick="deleteSavedGame('${gid}')">🗑 Delete</button>
+            </div>`;
+          grid.appendChild(card);
+        });
+      }
+    }catch(e){
+      console.error(e);
+      grid.innerHTML = '<p class="empty-note">Could not load your games — check your connection.</p>';
+    }
+    renderHistory();
+  }
+
+  async function renderHistory(){
+    const wrap = document.getElementById('dash-history-list');
+    wrap.innerHTML = '<p class="empty-note">Loading history…</p>';
+    try{
+      const snap = await teacherSessionsRef(state.teacher.id).once('value');
+      const sessions = snap.val() || {};
+      const ids = Object.keys(sessions);
+      if(!ids.length){ wrap.innerHTML = '<p class="empty-note">No completed games yet.</p>'; return; }
+      wrap.innerHTML='';
+      ids.sort((a,b)=>(sessions[b].finishedAt||0)-(sessions[a].finishedAt||0)).slice(0,20).forEach(sid=>{
+        const s = sessions[sid];
+        const players = s.players ? Object.values(s.players) : [];
+        const count = players.length;
+        const winner = players.slice().sort((a,b)=>(b.score||0)-(a.score||0))[0];
+        const avg = count ? Math.round(players.reduce((a,p)=>a+(p.score||0),0)/count) : 0;
+        const when = s.finishedAt ? new Date(s.finishedAt).toLocaleString() : '';
+        const row = document.createElement('div'); row.className='hist-row';
+        row.innerHTML = `<div>
+            <div class="hi-name">${escapeHtml(s.name||LABELS[s.category]||'Game')}</div>
+            <div class="hi-meta">${when} • ${count} student${count===1?'':'s'}${winner?' • Winner: '+escapeHtml(winner.name):''} • Avg score ${avg}</div>
+          </div>
+          <button class="btn btn-ghost btn-xs" onclick="viewHistoryDetail('${sid}')">View results</button>`;
+        wrap.appendChild(row);
+      });
+    }catch(e){
+      console.error(e);
+      wrap.innerHTML = '<p class="empty-note">Could not load history.</p>';
+    }
+  }
+
+  async function viewHistoryDetail(sid){
+    try{
+      const snap = await teacherSessionsRef(state.teacher.id).child(sid).once('value');
+      const s = snap.val();
+      if(!s){toast('Session not found');return}
+      document.getElementById('hist-detail-title').textContent = s.name || LABELS[s.category] || 'Results';
+      document.getElementById('hist-detail-eyebrow').textContent = s.finishedAt ? new Date(s.finishedAt).toLocaleString() : 'Session results';
+      const opts = {};
+      if(s.category==='race') opts.mode='race';
+      if(s.category==='tiktak' || s.category==='sticko') opts.showStatus=true;
+      document.getElementById('hist-detail-leaderboard').innerHTML = buildLeaderboardHtml({players:s.players||{}}, opts);
+      go('history-detail');
+    }catch(e){ console.error(e); toast('Could not load results'); }
+  }
+
+  function startNewGameFromDashboard(){
+    state.dashboardFlow = true;
+    document.getElementById('category-eyebrow').textContent = 'New game';
+    go('category');
+  }
+
+  async function editSavedGame(gid){
+    try{
+      const snap = await teacherGamesRef(state.teacher.id).child(gid).once('value');
+      const g = snap.val();
+      if(!g){toast('Game not found');return}
+      state.dashboardFlow = true;
+      state.editingGameId = gid;
+      state.category = g.category;
+      state.questions = JSON.parse(JSON.stringify(g.questions||[]));
+      state.challenges = JSON.parse(JSON.stringify(g.challenges||[]));
+      state.passingScore = g.passingScore!=null ? g.passingScore : 50;
+      goToBuilder();
+      document.getElementById('in-game-name').value = g.name||'';
+      go('teacher-builder');
+    }catch(e){ console.error(e); toast('Could not load that game'); }
+  }
+
+  async function deleteSavedGame(gid){
+    if(!confirm('Delete this saved game? This cannot be undone.')) return;
+    try{
+      await teacherGamesRef(state.teacher.id).child(gid).remove();
+      toast('Game deleted');
+      renderDashboard();
+    }catch(e){ console.error(e); toast('Could not delete — check your connection'); }
+  }
+
+  async function hostSavedGame(gid){
+    try{
+      const snap = await teacherGamesRef(state.teacher.id).child(gid).once('value');
+      const g = snap.val();
+      if(!g){toast('Game not found');return}
+      toast('Creating game…');
+      const code = await genCode();
+      state.code = code; state.category = g.category;
+      state.hostingGameId = gid; state.hostingSaved = true;
+      const room = {
+        code, category: g.category, players:{}, questions: g.questions||[],
+        passingScore: g.passingScore!=null?g.passingScore:50,
+        challenges: g.challenges||[],
+        status:'waiting', createdAt: Date.now(),
+        teacherId: state.teacher.id, gameId: gid, gameName: g.name||LABELS[g.category]
+      };
+      await roomRef(code).set(room);
+      state.currentRoom = room;
+      attachRoomListener(code);
+      const wrap=document.getElementById('teacher-code-digits');
+      wrap.innerHTML='';
+      code.split('').forEach(ch=>{const d=document.createElement('div');d.className='code-digit';d.textContent=ch;wrap.appendChild(d)});
+      document.getElementById('teacher-code-note').textContent = 'Content is already saved — go straight to the waiting room.';
+      document.getElementById('teacher-code-next-btn').textContent = 'Go to waiting room →';
+      document.getElementById('teacher-code-next-btn').onclick = function(){
+        document.getElementById('teacher-wait-code').textContent = state.code;
+        go('teacher-waiting');
+        renderTeacherPlayersFromRoom(state.currentRoom || {players:{}});
+      };
+      go('teacher-code');
+    }catch(e){
+      console.error(e);
+      toast('Could not host this game — check your connection.');
+    }
+  }
+
+  /* ===================================================================
+    BUILDER (shared by dashboard-flow "create new / edit" and legacy path)
+    =================================================================== */
+  function goBackFromBuilder(){
+    if(state.dashboardFlow){
+      document.getElementById('category-eyebrow').textContent='New game';
+      go('category');
+    } else {
+      go('teacher-code');
+    }
+  }
+
+  function goToBuilder(){
+    const cat=state.category;
+    document.getElementById('builder-eyebrow').textContent=LABELS[cat]+' builder';
+    const area=document.getElementById('builder-content');
+    const nameField = document.getElementById('builder-name-field');
+    nameField.style.display = state.dashboardFlow ? 'block' : 'none';
+    document.getElementById('builder-save-btn').textContent = state.dashboardFlow ? 'Save game' : 'Save & go to waiting room →';
+
+    if(cat==='sticko'){
+      document.getElementById('builder-title').textContent='Create Stick-O questions';
+      if(!state.questions.length){
+        state.questions=[{text:'',options:['','','',''],correct:0,points:10}];
+      }
+      if(state.passingScore == null) state.passingScore = 50;
+      area.innerHTML=`
+        <div class="field" style="margin-bottom:20px">
+          <label for="in-passing-score">Passing Score</label>
+          <input id="in-passing-score" type="number" min="1" max="9999" value="${state.passingScore}" oninput="state.passingScore=parseInt(this.value,10)||50">
+          <p class="hint">Students must reach the passing score to successfully complete the game.</p>
+        </div>
+        <div id="questions-list"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="addQuestion()">+ Add question</button>
+        <p class="hint">Each question becomes one Stick-O piece. A wrong answer swaps in a fresh question instead of ending the turn, and correct answers earn a random point bonus.</p>`;
+      renderQuestions(true);
+    } else if(cat==='tiktak'){
+      document.getElementById('builder-title').textContent='Create Tic-Tac-Toe questions';
+      if(!state.questions.length){
+        state.questions=[{text:'',options:['','','',''],correct:0,points:15}];
+      }
+      if(!state.challenges || !state.challenges.length) state.challenges = JSON.parse(JSON.stringify(DEFAULT_CHALLENGES));
+      area.innerHTML=`
+        <div id="questions-list"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="addQuestion()">+ Add question</button>
+        <p class="hint">Add up to 9 questions — one per board square. Answer correctly and you'll choose which mark (✖ or ⭕) to place. Answer wrong and a challenge appears just for you.</p>
+        <div id="challenges-list" style="margin-top:22px"></div>
+        <button class="btn btn-ghost btn-sm" onclick="addChallenge()">+ Add challenge</button>
+        <p class="hint">Shown only to the student who answers a square incorrectly — never to the teacher.</p>`;
+      renderQuestions(false);
+      renderChallenges();
+    } else {
+      document.getElementById('builder-title').textContent='Write your questions';
+      if(!state.questions.length){
+        if(cat==='brain') state.questions=JSON.parse(JSON.stringify(DEFAULT_BRAIN));
+        else state.questions=[{text:'',options:['','','',''],correct:0,points:10}];
+      }
+      area.innerHTML=`<div id="questions-list"></div><button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="addQuestion()">+ Add question</button>${cat==='brain'?'<p class="hint">Defaults loaded — edit freely. Keep questions short for speed.</p>':''}`;
+      renderQuestions(false);
+    }
+    go('teacher-builder');
+  }
+
+  function addQuestion(){
+    if(state.category==='tiktak' && state.questions.length>=9){toast('Tic-Tac-Toe only uses up to 9 questions');return}
+    state.questions.push({text:'',options:['','','',''],correct:0,points:10});
+    renderQuestions(state.category==='sticko');
+  }
+  function removeQuestion(i){
+    if(state.questions.length<=1){toast('Need at least one');return}
+    state.questions.splice(i,1);
+    renderQuestions(state.category==='sticko');
+  }
+  function renderQuestions(withPoints){
+    const list=document.getElementById('questions-list');if(!list)return;
+    list.innerHTML='';
+    state.questions.forEach((q,i)=>{
+      if(q.points == null) q.points = 10;
+      const b=document.createElement('div');b.className='q-block';
+      let pointsHtml = '';
+      if(withPoints){
+        pointsHtml = `<div class="field" style="margin-top:12px;margin-bottom:0">
+          <label>Base points for this question</label>
+          <select onchange="state.questions[${i}].points=parseInt(this.value,10)">
+            ${[5,10,15,20,25,30].map(p=>`<option value="${p}" ${q.points===p?'selected':''}>+${p}</option>`).join('')}
+          </select>
+          <p class="hint">A random bonus (0–15) is added on top when the student answers correctly.</p>
+        </div>`;
+      }
+      b.innerHTML=`<div class="q-block-head"><span class="q-num">QUESTION ${i+1}</span><button class="btn btn-ghost btn-sm" onclick="removeQuestion(${i})" style="padding:4px 10px">✕</button></div>
+        <div class="field" style="margin-bottom:12px"><input type="text" placeholder="Type your question…" value="${escapeHtml(q.text)}" oninput="state.questions[${i}].text=this.value"></div>
+        ${[0,1,2,3].map(o=>`<div class="opt-row ${q.correct===o?'correct':''}" data-qi="${i}" data-oi="${o}">
+          <div class="opt-letter" onclick="markCorrect(${i},${o})">${'ABCD'[o]}</div>
+          <input type="text" placeholder="Option ${'ABCD'[o]}" value="${escapeHtml(q.options[o])}" oninput="state.questions[${i}].options[${o}]=this.value">
+        </div>`).join('')}
+        <p class="hint">Tap a letter to mark the correct answer.</p>
+        ${pointsHtml}`;
+      list.appendChild(b);
+    });
+  }
+  function markCorrect(qi,oi){state.questions[qi].correct=oi;renderQuestions(state.category==='sticko')}
+
+  function addChallenge(){
+    state.challenges.push({text:'', timeLimit:15});
+    renderChallenges();
+  }
+  function removeChallenge(i){
+    if(state.challenges.length<=1){toast('Keep at least one challenge');return}
+    state.challenges.splice(i,1);
+    renderChallenges();
+  }
+  function renderChallenges(){
+    const list=document.getElementById('challenges-list'); if(!list) return;
+    list.innerHTML = '<p class="dash-section-title" style="margin:0 0 10px;max-width:none">⚡ Challenges (shown on a wrong answer)</p>';
+    state.challenges.forEach((c,i)=>{
+      const b=document.createElement('div'); b.className='q-block';
+      b.innerHTML = `<div class="q-block-head"><span class="q-num">CHALLENGE ${i+1}</span><button class="btn btn-ghost btn-sm" onclick="removeChallenge(${i})" style="padding:4px 10px">✕</button></div>
+        <div class="field" style="margin-bottom:10px"><input type="text" placeholder="e.g. Name 3 planets in 10 seconds" value="${escapeHtml(c.text)}" oninput="state.challenges[${i}].text=this.value"></div>
+        <div class="field" style="margin-bottom:0"><label>Time limit</label>
+          <select onchange="state.challenges[${i}].timeLimit=parseInt(this.value,10)">
+            ${[10,15,20,30].map(t=>`<option value="${t}" ${c.timeLimit===t?'selected':''}>${t}s</option>`).join('')}
+          </select></div>`;
+      list.appendChild(b);
+    });
+  }
+
+  async function saveAndWait(){
+    const cat=state.category;
+    const err=document.getElementById('form-error');err.classList.remove('show');
+    for(let i=0;i<state.questions.length;i++){
+      const q=state.questions[i];
+      q.text = sanitizeText(q.text);
+      q.options = q.options.map(sanitizeText);
+      if(!q.text.trim()||q.options.some(o=>!String(o).trim())){
+        err.textContent=`Question ${i+1} is incomplete`;err.classList.add('show');return;
+      }
+      if(q.points == null) q.points = 10;
+    }
+    if(cat==='tiktak' && state.challenges){
+      state.challenges.forEach(c=>{ c.text = sanitizeText(c.text); if(!c.timeLimit) c.timeLimit=15; });
+      if(state.challenges.some(c=>!c.text.trim())){
+        err.textContent='Every challenge needs some text.';err.classList.add('show');return;
+      }
+    }
+    let ps = null;
+    if(cat==='sticko'){
+      ps = parseInt(state.passingScore,10);
+      if(isNaN(ps) || ps < 1){err.textContent='Enter a valid passing score (1 or higher)';err.classList.add('show');return}
+    }
+
+    if(state.dashboardFlow){
+      // Save to the teacher's permanent account, not a temp room.
+      const nameInput = document.getElementById('in-game-name');
+      const name = sanitizeText(nameInput ? nameInput.value : '') || (LABELS[cat]+' game');
+      const gid = state.editingGameId || genId();
+      const payload = {
+        name, category: cat, questions: state.questions,
+        challenges: cat==='tiktak' ? (state.challenges||[]) : null,
+        passingScore: ps, updatedAt: Date.now(),
+        createdAt: state.editingGameId ? undefined : Date.now()
+      };
+      try{
+        if(state.editingGameId){
+          await teacherGamesRef(state.teacher.id).child(gid).update(payload);
+        } else {
+          payload.createdAt = Date.now();
+          await teacherGamesRef(state.teacher.id).child(gid).set(payload);
+        }
+        toast('Game saved ✓');
+        state.dashboardFlow=false; state.editingGameId=null;
+        go('teacher-dashboard');
+        renderDashboard();
+      }catch(e){
+        console.error(e);
+        err.textContent='Could not save — check your connection.';err.classList.add('show');
+      }
+      return;
+    }
+
+    // Legacy path (no account yet reachable in this build, kept for resilience)
+    const payload = {questions:state.questions,status:'waiting'};
+    if(cat==='sticko') payload.passingScore = ps;
+    try{
+      await roomRef(state.code).update(payload);
+    }catch(e){
+      console.error(e);
+      err.textContent='Could not save — check your connection.';err.classList.add('show');return;
+    }
+    document.getElementById('teacher-wait-code').textContent=state.code;
+    go('teacher-waiting');
+    renderTeacherPlayersFromRoom(state.currentRoom || {players:{}});
+  }
+
+  function renderTeacherPlayersFromRoom(room){
+    const players = Object.values(room.players||{});
+    const wrap=document.getElementById('teacher-view-players');
+    if(!wrap) return;
+    wrap.innerHTML='';
+    if(!players.length) wrap.innerHTML='<p class="empty-note">No students yet — share the code above.</p>';
+    else players.forEach(p=>{
+      const chip=document.createElement('div');chip.className='player-chip';
+      chip.innerHTML=`<span class="player-avatar">${(p.name||'?')[0].toUpperCase()}</span>${escapeHtml(p.name)}`;
+      wrap.appendChild(chip);
+    });
+    const startBtn=document.getElementById('btn-start-game');
+    if(startBtn) startBtn.disabled = players.length===0;
+  }
+
+  function backToBuilderFromWaiting(){
+    state.dashboardFlow = false; // editing content for an already-created room goes through the quick path
+    goToBuilder();
+  }
+
+  async function startGame(){
+    try{
+      await roomRef(state.code).update({status:'playing'});
+    }catch(e){
+      toast('Could not start — check your connection.');return;
+    }
+    const room = state.currentRoom || await fetchRoomOnce(state.code);
+    if(state.isTeacher){
+      // The teacher NEVER enters gameplay — they move to a dedicated live monitor instead.
+      enterTeacherMonitor(room);
+    } else {
+      enterPlay(room);
+    }
+  }
+
+  async function submitJoin(){
+    if(!checkJoinRateLimit()){
+      const err=document.getElementById('join-error');
+      err.textContent='Too many attempts — please wait a minute and try again.';err.classList.add('show');return;
+    }
+    const code=document.getElementById('in-join-code').value.trim().toUpperCase();
+    const name=sanitizeName(document.getElementById('in-join-name').value);
+    const err=document.getElementById('join-error');err.classList.remove('show');
+    if(code.length<4){err.textContent='Enter the code your teacher gave you.';err.classList.add('show');return}
+    if(!name){err.textContent='Enter your name.';err.classList.add('show');return}
+    const btn=document.getElementById('btn-submit-join');
+    if(btn) btn.disabled=true;
+    try{
+      const room = await fetchRoomOnce(code);
+      if(!room){err.textContent="That code doesn't match a game.";err.classList.add('show');return}
+      if(room.status==='finished'){err.textContent='This game has already ended.';err.classList.add('show');return}
+      const key = slugifyKey(name);
+      const players = room.players||{};
+      if(players[key]){err.textContent='That name is already taken.';err.classList.add('show');return}
+      const playerRecord = {
+        name,joinedAt:Date.now(),score:0,progress:0,status:null,
+        correctAnswers:0,wrongAnswers:0,questionsAnswered:0,
+        questionsRemaining:(room.questions||[]).length,
+        challengesTriggered:0,challengesCompleted:0,
+        currentQuestion:0,lastAction:null,lastActionAt:Date.now(),finishedAt:null
+      };
+      await db.ref(`rooms/${code}/players/${key}`).set(playerRecord);
+      state.code=code;state.playerName=name;state.playerKey=key;state.category=room.category;
+      document.getElementById('student-name-display').textContent=name;
+      document.getElementById('student-code-display').textContent=code;
+      room.players = Object.assign({}, players, {[key]: playerRecord});
+      state.currentRoom = room;
+      go('student-waiting');
+      renderStudentPlayersFromRoom(room);
+      attachRoomListener(code);
+    }catch(e){
+      console.error(e);
+      err.textContent='Connection problem — please try again.';err.classList.add('show');
+    } finally {
+      if(btn) btn.disabled=false;
+    }
+  }
+
+  function renderStudentPlayersFromRoom(room){
+    const wrap=document.getElementById('student-view-players');
+    if(!wrap) return;
+    wrap.innerHTML='';
+    Object.values(room.players||{}).forEach(p=>{
+      const chip=document.createElement('div');chip.className='player-chip';
+      chip.innerHTML=`<span class="player-avatar">${(p.name||'?')[0].toUpperCase()}</span>${escapeHtml(p.name)}`;
+      wrap.appendChild(chip);
+    });
+  }
+
+  function leaveWaitingRoom(){
+    if(state.code && state.playerKey && db){
+      db.ref(`rooms/${state.code}/players/${state.playerKey}`).remove().catch(()=>{});
+    }
+    detachRoomListener();
+    resetAll();
+  }
+
+  function exitGame(){
+    if(!confirm('Leave the game? Your progress will be lost.')) return;
+    detachRoomListener();
+    resetAll();
+  }
+
+  function enterPlay(room){
+    room = room || state.currentRoom;
+    if(!room) return;
+    state.questions = room.questions || [];
+    state.passingScore = room.passingScore != null ? room.passingScore : 50;
+    state.challenges = room.challenges && room.challenges.length ? room.challenges : DEFAULT_CHALLENGES;
+    state.currentQ=0;state.answers=[];state.score=0;state.raceProgress=0;
+    state.usedStickos=[];state.stickoAttempts={};state.selectedSticko=null;state.gameStatus=null;state.ttt=null;
+    state.correctAnswers=0;state.wrongAnswers=0;state.questionsAnswered=0;state.challengesTriggered=0;state.challengesCompleted=0;
+    state._enteredPlay = true;
+    go('play');
+    const cat=state.category;
+    if(cat==='quiz') playQuiz(false);
+    else if(cat==='brain') playBrain();
+    else if(cat==='spin') playSpin();
+    else if(cat==='sticko') playSticko();
+    else if(cat==='tiktak') playTiktak();
+    else if(cat==='race') playRace();
+  }
+
+  /* ===== LIVE MINI LEADERBOARD (shown at the top of every student game) ===== */
+  function buildMiniLeaderboardHtml(room, options){
+    options = options || {};
+    const players = room && room.players ? Object.values(room.players) : [];
+    if(!players.length) return '<p class="empty-note" style="margin:0">Waiting for scores…</p>';
+    if(options.mode==='race'){
+      players.sort((a,b)=>{
+        const pa=a.progress||0, pb=b.progress||0;
+        if(pb!==pa) return pb-pa;
+        return (b.score||0)-(a.score||0);
+      });
+    } else {
+      players.sort((a,b)=>(b.score||0)-(a.score||0));
+    }
+    const top=players.slice(0,5);
+    return top.map((p,i)=>{
+      const rank=i+1;
+      const isMe = state.playerName && p.name===state.playerName;
+      const cls = rank===1?'top1':rank===2?'top2':rank===3?'top3':'';
+      const medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':String(rank);
+      return `<div class="mini-lb-item ${cls} ${isMe?'me':''}">
+        <span class="mini-lb-rank">${medal}</span>
+        <span>${escapeHtml(p.name)}${isMe?' (You)':''}</span>
+        <span style="color:var(--purple)">${p.score||0}</span>
+      </div>`;
+    }).join('');
+  }
+  function renderMiniLeaderboard(room){
+    const el=document.getElementById('mini-lb');
+    if(!el||!room) return;
+    const opts = state.category==='race' ? {mode:'race'} : {};
+    el.innerHTML = `<div class="mini-leaderboard"><div class="mini-leaderboard-head"><span>🏆 Live Leaderboard</span><span>Top 5</span></div><div class="mini-leaderboard-list">${buildMiniLeaderboardHtml(room,opts)}</div></div>`;
+  }
+
+  /* ===================================================================
+    TEACHER LIVE MONITOR (host never plays — observes only)
+    =================================================================== */
+  function enterTeacherMonitor(room){
+    room = room || state.currentRoom;
+    document.getElementById('mon-game-title').textContent = (room && room.gameName) || LABELS[state.category] || 'Game';
+    document.getElementById('mon-code').textContent = state.code;
+    document.getElementById('mon-ttt-area').style.display = state.category==='tiktak' ? 'block' : 'none';
+    go('teacher-monitor');
+    renderTeacherMonitor(room);
+  }
+
+  function renderTeacherMonitor(room){
+    if(!room) return;
+    const players = Object.values(room.players||{});
+    document.getElementById('mon-count').textContent = players.length;
+    document.getElementById('mon-status').textContent = room.status==='playing' ? 'Live' : (room.status==='finished' ? 'Finished' : room.status||'—');
+
+    const opts = state.category==='race' ? {mode:'race'} : {};
+    const sorted = players.slice().sort((a,b)=>{
+      if(opts.mode==='race'){
+        const pa=a.progress||0, pb=b.progress||0;
+        if(pb!==pa) return pb-pa;
+      }
+      return (b.score||0)-(a.score||0);
+    });
+    const tbody = document.getElementById('mon-tbody');
+    if(!sorted.length){
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--paper-faint);padding:22px">No students yet.</td></tr>';
+    } else {
+      tbody.innerHTML = sorted.map((p,i)=>{
+        const rank=i+1;
+        const total = (room.questions||[]).length || 0;
+        const progressLabel = state.category==='race' ? ((p.progress||0)+'%')
+          : total ? `${p.questionsAnswered||0}/${total}` : (p.questionsAnswered||0);
+        let statusPill = '<span class="pill wait">Playing</span>';
+        if(p.status==='passed'||p.status==='won') statusPill='<span class="pill ok">'+p.status.toUpperCase()+'</span>';
+        else if(p.status==='failed'||p.status==='lost') statusPill='<span class="pill bad">'+p.status.toUpperCase()+'</span>';
+        else if(p.status==='draw') statusPill='<span class="pill wait">DRAW</span>';
+        else if(p.finishedAt) statusPill='<span class="pill ok">FINISHED</span>';
+        return `<tr>
+          <td>${rank}</td>
+          <td>${escapeHtml(p.name)}</td>
+          <td>${p.score||0}</td>
+          <td>${p.correctAnswers||0}</td>
+          <td>${p.wrongAnswers||0}</td>
+          <td>${progressLabel}</td>
+          <td>${statusPill}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    if(state.category==='tiktak'){
+      const area = document.getElementById('mon-ttt-area');
+      if(!sorted.length){
+        area.innerHTML = '<p class="empty-note">Boards will appear once students join.</p>';
+      } else {
+        area.innerHTML = '<p class="dash-section-title" style="margin:0 0 10px;max-width:none">Live boards</p><div style="display:flex;gap:18px;flex-wrap:wrap">'+
+          sorted.map(p=>{
+            const board = p.tttBoard || Array(9).fill(null);
+            const cells = board.map(v=>{
+              const cls = v ? (v==='X'?'mark-x':'mark-o') : '';
+              const inner = v ? '<span class="mark-shape"></span>' : '';
+              return `<div class="ttt-cell ${cls}">${inner}</div>`;
+            }).join('');
+            return `<div style="text-align:center">
+              <div class="ttt-board mini">${cells}</div>
+              <div style="font-size:11.5px;color:var(--paper-faint);margin-top:6px">${escapeHtml(p.name)}</div>
+            </div>`;
+          }).join('') + '</div>';
+      }
+    }
+  }
+
+  async function confirmEndFromMonitor(){
+    if(!confirm('End this game for everyone? Students still playing will see the game has ended.')) return;
+    try{
+      await roomRef(state.code).update({status:'finished'});
+    }catch(e){ /* best-effort */ }
+    // Save a permanent session record under the teacher's account.
+    if(state.teacher && state.currentRoom){
+      try{
+        const sid = genId();
+        await teacherSessionsRef(state.teacher.id).child(sid).set({
+          gameId: state.hostingGameId || null,
+          name: state.currentRoom.gameName || LABELS[state.category],
+          category: state.category,
+          startedAt: state.currentRoom.createdAt || Date.now(),
+          finishedAt: Date.now(),
+          players: state.currentRoom.players || {}
+        });
+      }catch(e){ console.error(e); }
+    }
+    detachRoomListener();
+    toast('Game ended — results saved to your history.');
+    state.dashboardFlow=false; state.editingGameId=null; state.hostingGameId=null; state.hostingSaved=false;
+    go('teacher-dashboard');
+    renderDashboard();
+  }
+
+  /* ===== QUIZ ===== */
+  function playQuiz(isBrain){
+    const q=state.questions[state.currentQ];
+    const total=state.questions.length;
+    const content=document.getElementById('play-content');
+    content.innerHTML=`
+      <div id="mini-lb"></div>
+      <div class="qplay-meta"><span>Question ${state.currentQ+1} of ${total}</span><span>Score: ${state.score}</span></div>
+      ${isBrain?`<div class="timer-display" id="timer-display">${state.timeLeft}s</div>`:''}
+      <h2 class="qplay-question">${escapeHtml(q.text)}</h2>
+      <div class="qplay-options" id="opts"></div>
+      ${!isBrain?`<div class="actions-row" style="margin-top:28px">
+        <button class="btn btn-ghost" onclick="prevQ()" ${state.currentQ===0?'disabled':''}>← Prev</button>
+        <button class="btn btn-primary" onclick="nextQ()">${state.currentQ===total-1?'Finish ✓':'Next →'}</button>
+      </div>`:''}`;
+    const letters=['A','B','C','D'];
+    q.options.forEach((opt,i)=>{
+      const btn=document.createElement('button');
+      btn.className='opt-btn'+(state.answers[state.currentQ]===i?' selected':'');
+      btn.innerHTML=`<span class="opt-letter">${letters[i]}</span><span>${escapeHtml(opt)}</span>`;
+      btn.onclick=()=>selectOpt(i,isBrain);
+      document.getElementById('opts').appendChild(btn);
+    });
+    renderMiniLeaderboard(state.currentRoom);
+  }
+  function selectOpt(idx,isBrain){
+    state.answers[state.currentQ]=idx;
+    document.querySelectorAll('#opts .opt-btn').forEach((b,i)=>b.classList.toggle('selected',i===idx));
+    if(isBrain) setTimeout(()=>nextQBrain(),350);
+  }
+  function nextQ(){
+    if(state.answers[state.currentQ]===undefined){toast('Select an answer');return}
+    if(state.answers[state.currentQ]===state.questions[state.currentQ].correct) state.score+=10;
+    if(state.currentQ<state.questions.length-1){state.currentQ++;playQuiz(false)}
+    else {
+      recomputeQuizStats();
+      updatePlayerData({finishedAt:Date.now()}); showResults();
+    }
+  }
+  function prevQ(){
+    if(state.currentQ>0){
+      state.currentQ--;
+      state.score=0;
+      for(let i=0;i<=state.currentQ;i++) if(state.answers[i]===state.questions[i].correct) state.score+=10;
+      playQuiz(false);
+    }
+  }
+  function recomputeQuizStats(){
+    state.correctAnswers=0;state.wrongAnswers=0;state.questionsAnswered=0;
+    state.questions.forEach((q,i)=>{
+      if(state.answers[i]===undefined) return;
+      state.questionsAnswered++;
+      if(state.answers[i]===q.correct) state.correctAnswers++; else state.wrongAnswers++;
+    });
+  }
+
+  /* ===== BRAIN ===== */
+  function playBrain(){state.timeLeft=12;playQuiz(true);startTimer()}
+  function startTimer(){
+    if(state.timer) clearInterval(state.timer);
+    state.timer=setInterval(()=>{
+      state.timeLeft--;
+      const el=document.getElementById('timer-display');
+      if(el){el.textContent=state.timeLeft+'s';el.classList.toggle('urgent',state.timeLeft<=5)}
+      if(state.timeLeft<=0){
+        clearInterval(state.timer);
+        if(state.answers[state.currentQ]===undefined) state.answers[state.currentQ]=-1;
+        nextQBrain();
+      }
+    },1000);
+  }
+  function nextQBrain(){
+    if(state.timer){clearInterval(state.timer);state.timer=null}
+    const correct = state.answers[state.currentQ]===state.questions[state.currentQ].correct;
+    recordAnswer(correct);
+    if(correct) state.score+=15;
+    if(state.currentQ<state.questions.length-1){state.currentQ++;state.timeLeft=12;playQuiz(true);startTimer()}
+    else {updatePlayerData({finishedAt:Date.now()}); showResults()}
+  }
+
+  /* ===== SPIN ===== */
+  function playSpin(){
+    document.getElementById('play-content').innerHTML=`
+      <div id="mini-lb"></div>
+      <div style="text-align:center">
+        <h2 style="font-family:var(--font-display);font-size:28px;margin-bottom:8px">Spin & Answer</h2>
+        <p style="color:var(--paper-dim);margin-bottom:20px">Score: <strong id="spin-score" style="color:var(--purple)">${state.score}</strong> · Q ${state.currentQ+1}/${state.questions.length}</p>
+        <div class="wheel-container">
+          <div class="wheel-pointer"></div>
+          <div class="wheel" id="spin-wheel" style="background:conic-gradient(#7c5cfc 0deg 60deg,#a78bfa 60deg 120deg,#c4b5fd 120deg 180deg,#4adeb0 180deg 240deg,#ff6b8a 240deg 300deg,#60a5fa 300deg 360deg)"></div>
+        </div>
+        <button class="btn btn-primary btn-lg" id="spin-btn" onclick="doSpin()">🎡 Spin the Wheel</button>
+        <div id="spin-q-area" style="margin-top:28px;display:none"></div>
+      </div>`;
+    renderMiniLeaderboard(state.currentRoom);
+  }
+  function doSpin(){
+    const btn=document.getElementById('spin-btn');btn.disabled=true;
+    state.wheelRotation+=Math.floor(Math.random()*360)+720;
+    document.getElementById('spin-wheel').style.transform=`rotate(${state.wheelRotation}deg)`;
+    setTimeout(()=>{showSpinQ();btn.disabled=false},4200);
+  }
+  function showSpinQ(){
+    const q=state.questions[state.currentQ];
+    const area=document.getElementById('spin-q-area');
+    area.style.display='block';
+    area.innerHTML=`<h3 class="qplay-question" style="font-size:22px">${escapeHtml(q.text)}</h3><div class="qplay-options" id="spin-opts"></div>`;
+    q.options.forEach((opt,i)=>{
+      const b=document.createElement('button');b.className='opt-btn';
+      b.innerHTML=`<span class="opt-letter">${'ABCD'[i]}</span><span>${escapeHtml(opt)}</span>`;
+      b.onclick=()=>answerSpin(i);
+      document.getElementById('spin-opts').appendChild(b);
+    });
+  }
+  function answerSpin(idx){
+    const correct = idx===state.questions[state.currentQ].correct;
+    recordAnswer(correct);
+    if(correct){state.score+=20;toast('+20 points!')}
+    else toast('Wrong answer');
+    document.getElementById('spin-score').textContent=state.score;
+    updatePlayerData({});
+    renderMiniLeaderboard(state.currentRoom);
+    state.currentQ++;
+    if(state.currentQ>=state.questions.length){ updatePlayerData({finishedAt:Date.now()}); showResults(); }
+    else {document.getElementById('spin-q-area').style.display='none';document.getElementById('spin-btn').textContent='🎡 Spin Again'}
+  }
+
+  /* ===== STICK-O GRAB ===== */
+  function playSticko(){
+    renderStickoGrid();
+  }
+
+  function renderStickoGrid(){
+    const total = state.questions.length;
+    const used = state.usedStickos;
+    const remaining = total - used.length;
+    const content = document.getElementById('play-content');
+    let pieces = '';
+    for(let i=0;i<total;i++){
+      const isUsed = used.includes(i);
+      const emoji = STICKO_COLORS[i % STICKO_COLORS.length];
+      pieces += `<button type="button" class="sticko-piece ${isUsed?'used':''}" data-idx="${i}" onclick="selectSticko(${i})" ${isUsed?'disabled':''} aria-label="Stick-O ${i+1}">
+        <span>${emoji}</span>
+        <span class="sticko-label">#${i+1}</span>
+      </button>`;
+    }
+    content.innerHTML = `
+      <div id="mini-lb"></div>
+      <div class="sticko-header">
+        <h2>🍫 Stick-O Grab</h2>
+        <p class="sticko-score">Score: <strong id="sticko-live-score">${state.score}</strong></p>
+        <p class="sticko-pass">Passing score: ${state.passingScore} · ${remaining} Stick-O left</p>
+      </div>
+      <p style="text-align:center;color:var(--paper-dim);font-size:14px;margin-bottom:16px">Pick a Stick-O to reveal a question. Wrong answers swap in a new question — you get another shot!</p>
+      <div class="sticko-grid" id="sticko-grid">${pieces}</div>
+    `;
+    renderMiniLeaderboard(state.currentRoom);
+  }
+
+  function selectSticko(idx){
+    if(state.usedStickos.includes(idx)) return;
+    state.selectedSticko = idx;
+    const piece = document.querySelector(`.sticko-piece[data-idx="${idx}"]`);
+    if(piece) piece.classList.add('selected');
+    setTimeout(()=>showStickoQuestion(idx), 280);
+  }
+
+  function showStickoQuestion(idx){
+    const q = state.questions[idx];
+    showStickoQuestionCard(idx, q, false);
+  }
+
+  function showStickoQuestionCard(stickIdx, q, isRetry){
+    const pts = q.points != null ? q.points : 10;
+    const emoji = STICKO_COLORS[stickIdx % STICKO_COLORS.length];
+    const content = document.getElementById('play-content');
+    content.innerHTML = `
+      <div id="mini-lb"></div>
+      <div class="sticko-q-wrap">
+        <div class="qplay-meta">
+          <span>${emoji} Stick-O #${stickIdx+1}${isRetry?' · New question':''}</span>
+          <span>Score: ${state.score}</span>
+        </div>
+        <h2 class="qplay-question">${escapeHtml(q.text)}</h2>
+        <p style="text-align:center;font-family:var(--font-mono);font-size:13px;color:var(--purple);margin-bottom:20px">Base points: +${pts} <span style="color:var(--paper-faint)">(plus a random bonus if correct)</span></p>
+        <div class="qplay-options" id="sticko-opts"></div>
+      </div>`;
+    q.options.forEach((opt,i)=>{
+      const b=document.createElement('button');b.className='opt-btn';
+      b.innerHTML=`<span class="opt-letter">${'ABCD'[i]}</span><span>${escapeHtml(opt)}</span>`;
+      b.onclick=()=>answerSticko(stickIdx,i,q);
+      document.getElementById('sticko-opts').appendChild(b);
+    });
+    renderMiniLeaderboard(state.currentRoom);
+  }
+
+  function answerSticko(stickIdx, ansIdx, q){
+    const correct = ansIdx === q.correct;
+    recordAnswer(correct);
+    if(correct){
+      const base = q.points!=null?q.points:10;
+      const bonus = Math.floor(Math.random()*16);
+      const awarded = base + bonus;
+      state.score += awarded;
+      state.usedStickos.push(stickIdx);
+      showStickoFeedback(true, awarded, stickIdx, false);
+    } else {
+      state.stickoAttempts[stickIdx] = (state.stickoAttempts[stickIdx]||0)+1;
+      const outOfTries = state.stickoAttempts[stickIdx] >= 3;
+      if(outOfTries) state.usedStickos.push(stickIdx);
+      showStickoFeedback(false, 0, stickIdx, outOfTries);
+    }
+  }
+
+  function showStickoFeedback(isCorrect, pts, stickIdx, skipped){
+    const content = document.getElementById('play-content');
+    let bigText, ptsText;
+    if(isCorrect){bigText='Correct! 🎉';ptsText='+'+pts+' Points'}
+    else if(skipped){bigText='Out of tries 🔚';ptsText='This Stick-O is skipped'}
+    else {bigText='Not quite! 🔄';ptsText="Here's a new question…"}
+    content.innerHTML = `
+      <div id="mini-lb"></div>
+      <div class="sticko-feedback ${isCorrect?'correct':'wrong'}">
+        <div class="big">${bigText}</div>
+        <div class="pts">${ptsText}</div>
+        <p style="color:var(--paper-dim);margin-top:12px">Current score: <strong style="color:var(--purple)">${state.score}</strong></p>
+      </div>`;
+    renderMiniLeaderboard(state.currentRoom);
+    updatePlayerData({});
+    setTimeout(()=>{
+      if(isCorrect || skipped){
+        if(state.usedStickos.length >= state.questions.length || state.score >= state.passingScore){
+          state.gameStatus = state.score >= state.passingScore ? 'passed' : 'failed';
+          updatePlayerData({status: state.gameStatus, finishedAt:Date.now()});
+          showResults();
+          return;
+        }
+        renderStickoGrid();
+      } else {
+        showStickoRetryQuestion(stickIdx);
+      }
+    }, 1400);
+  }
+
+  function showStickoRetryQuestion(stickIdx){
+    const total = state.questions.length;
+    const pool = [];
+    for(let i=0;i<total;i++){ if(i!==stickIdx && !state.usedStickos.includes(i)) pool.push(i); }
+    const sourceIdx = pool.length ? pool[Math.floor(Math.random()*pool.length)] : stickIdx;
+    const q = state.questions[sourceIdx];
+    showStickoQuestionCard(stickIdx, q, true);
+  }
+
+  /* ===================================================================
+    TIC-TAC-TOE — reworked flow (no computer moves)
+    Board appears immediately. Clicking a square asks a question first.
+    Correct  -> student chooses which mark (X or O) to place there.
+    Wrong    -> a challenge appears, visible only to this student; the
+                square stays open and can be tried again later.
+    The teacher only ever sees the resulting board + correct/wrong +
+    challenge status — never an interactive prompt.
+    =================================================================== */
+  function playTiktak(){
+    state.ttt = {board:Array(9).fill(null), gameOver:false, attempts:{}};
+    updatePlayerData({tttBoard: state.ttt.board});
+    renderTiktakBoard();
+  }
+
+  function renderTiktakBoard(){
+    const t = state.ttt;
+    const content = document.getElementById('play-content');
+    const cellsHtml = t.board.map((val,i)=>{
+      const inner = val ? '<span class="mark-shape"></span>' : '';
+      const cls = val ? (val==='X'?'mark-x':'mark-o') : '';
+      const disabled = (val || t.gameOver) ? 'disabled' : '';
+      return `<button type="button" class="ttt-cell ${cls}" ${disabled} onclick="selectTiktakCell(${i})" aria-label="Square ${i+1}">${inner}</button>`;
+    }).join('');
+    content.innerHTML = `
+      <div id="mini-lb"></div>
+      <div class="ttt-header">
+        <h2>❌⭕ Tic-Tac-Toe Showdown</h2>
+        <p class="ttt-sub">Pick a square to answer its question. Get it right and choose which mark to place — get it wrong and a quick challenge appears just for you.</p>
+        <p class="ttt-score">Score: <strong id="ttt-live-score">${state.score}</strong></p>
+      </div>
+      <div class="ttt-board">${cellsHtml}</div>
+    `;
+    renderMiniLeaderboard(state.currentRoom);
+  }
+
+  function selectTiktakCell(idx){
+    const t = state.ttt;
+    if(!t || t.board[idx] || t.gameOver) return;
+    const total = state.questions.length || 1;
+    const q = state.questions[idx % total];
+    const content = document.getElementById('play-content');
+    content.innerHTML = `
+      <div id="mini-lb"></div>
+      <div class="qplay-meta"><span>Square ${idx+1} of 9</span><span>Score: ${state.score}</span></div>
+      <h2 class="qplay-question">${escapeHtml(q.text)}</h2>
+      <div class="qplay-options" id="ttt-opts"></div>
+    `;
+    q.options.forEach((opt,i)=>{
+      const b=document.createElement('button');b.className='opt-btn';
+      b.innerHTML=`<span class="opt-letter">${'ABCD'[i]}</span><span>${escapeHtml(opt)}</span>`;
+      b.onclick=()=>answerTiktak(idx,i,q);
+      document.getElementById('ttt-opts').appendChild(b);
+    });
+    renderMiniLeaderboard(state.currentRoom);
+  }
+
+  function checkTtt(board){
+    for(const [a,b,c] of TTT_LINES){
+      if(board[a] && board[a]===board[b] && board[b]===board[c]) return board[a];
+    }
+    return null;
+  }
+
+  function answerTiktak(idx, ansIdx, q){
+    const correct = ansIdx === q.correct;
+    recordAnswer(correct);
+    const content = document.getElementById('play-content');
+    if(correct){
+      state.score += (q.points!=null?q.points:15);
+      updatePlayerData({lastAction:'correct'});
+      content.innerHTML = `
+        <div id="mini-lb"></div>
+        <div class="sticko-feedback correct">
+          <div class="big">✓ Correct answer!</div>
+          <p style="color:var(--paper-dim);margin:10px 0 20px">Choose which mark to place on square ${idx+1}:</p>
+          <div class="mark-choice-row">
+            <button class="mark-choice-btn" onclick="placeTiktakMark(${idx},'X')">✖</button>
+            <button class="mark-choice-btn" onclick="placeTiktakMark(${idx},'O')">⭕</button>
+          </div>
+        </div>`;
+      renderMiniLeaderboard(state.currentRoom);
+    } else {
+      triggerTiktakChallenge(idx);
+    }
+  }
+
+  function placeTiktakMark(idx, mark){
+    const t = state.ttt;
+    t.board[idx] = mark;
+    updatePlayerData({tttBoard: t.board});
+    const winner = checkTtt(t.board);
+    const content = document.getElementById('play-content');
+    content.innerHTML = `
+      <div id="mini-lb"></div>
+      <div class="sticko-feedback correct">
+        <div class="big">${mark==='X'?'✖':'⭕'} placed on square ${idx+1}</div>
+        <p style="color:var(--paper-dim);margin-top:10px">Current score: <strong style="color:var(--purple)">${state.score}</strong></p>
+      </div>`;
+    renderMiniLeaderboard(state.currentRoom);
+    setTimeout(()=>{
+      if(winner || t.board.every(c=>c)){ finishTiktak(winner); return; }
+      renderTiktakBoard();
+    }, 1100);
+  }
+
+  function triggerTiktakChallenge(idx){
+    state.challengesTriggered++;
+    updatePlayerData({lastAction:'wrong', challengesTriggered: state.challengesTriggered});
+    const list = (state.challenges && state.challenges.length) ? state.challenges : DEFAULT_CHALLENGES;
+    const ch = list[Math.floor(Math.random()*list.length)];
+    const timeLimit = ch.timeLimit || 15;
+    let timeLeft = timeLimit;
+    const content = document.getElementById('play-content');
+    content.innerHTML = `
+      <div id="mini-lb"></div>
+      <div class="challenge-card">
+        <div class="cbolt">⚡</div>
+        <h3>Challenge!</h3>
+        <p class="ctext">${escapeHtml(ch.text)}</p>
+        <div class="timer-display" id="challenge-timer">${timeLeft}s</div>
+        <div class="actions-row" style="margin-top:6px">
+          <button class="btn btn-teal" onclick="resolveTiktakChallenge(${idx},true)">✓ I did it</button>
+          <button class="btn btn-ghost" onclick="resolveTiktakChallenge(${idx},false)">Skip</button>
+        </div>
+        <p style="color:var(--paper-faint);font-size:12px;margin-top:14px">This challenge is just for you — square ${idx+1} stays open and you can try it again.</p>
+      </div>`;
+    renderMiniLeaderboard(state.currentRoom);
+    if(state.timer) clearInterval(state.timer);
+    state.timer = setInterval(()=>{
+      timeLeft--;
+      const el=document.getElementById('challenge-timer');
+      if(el){ el.textContent=timeLeft+'s'; el.classList.toggle('urgent',timeLeft<=5); }
+      if(timeLeft<=0){ clearInterval(state.timer); state.timer=null; resolveTiktakChallenge(idx,false); }
+    },1000);
+  }
+
+  function resolveTiktakChallenge(idx, completed){
+    if(state.timer){ clearInterval(state.timer); state.timer=null; }
+    if(completed) state.challengesCompleted++;
+    updatePlayerData({challengesCompleted: state.challengesCompleted, lastAction: completed?'challenge_completed':'challenge_failed'});
+    const content = document.getElementById('play-content');
+    content.innerHTML = `
+      <div id="mini-lb"></div>
+      <div class="sticko-feedback ${completed?'correct':'wrong'}">
+        <div class="big">${completed?'Nice work! 🎉':'No worries!'}</div>
+        <p style="color:var(--paper-dim);margin-top:10px">Square ${idx+1} is still open — pick it again anytime.</p>
+      </div>`;
+    renderMiniLeaderboard(state.currentRoom);
+    setTimeout(()=>renderTiktakBoard(), 1300);
+  }
+
+  function finishTiktak(winner){
+    state.ttt.gameOver = true;
+    let status;
+    if(winner){ state.score += 25; status='won'; }
+    else { state.score += 10; status='draw'; }
+    state.gameStatus = status;
+    updatePlayerData({status, finishedAt:Date.now(), tttBoard: state.ttt.board});
+    showResults();
+  }
+
+  /* ===== RACE ===== */
+  function playRace(){state.raceProgress=0;renderRace()}
+  function renderRace(){
+    const q=state.questions[state.currentQ];
+    document.getElementById('play-content').innerHTML=`
+      <div id="mini-lb"></div>
+      <div>
+        <h2 style="font-family:var(--font-display);font-size:26px;text-align:center;margin-bottom:12px">🏁 Race to the Finish</h2>
+        <div style="margin-bottom:8px;display:flex;justify-content:space-between;font-size:13px;color:var(--paper-dim)"><span>${escapeHtml(state.playerName||'You')}</span><span>${state.raceProgress}%</span></div>
+        <div class="race-bar-bg"><div class="race-bar-fill" style="width:${state.raceProgress}%">${state.raceProgress>=12?state.raceProgress+'%':''}</div></div>
+        <p style="text-align:center;color:var(--paper-faint);font-size:13px;margin:16px 0 20px">Answer correctly to move forward!</p>
+        <h3 class="qplay-question" style="font-size:22px">${escapeHtml(q.text)}</h3>
+        <div class="qplay-options" id="race-opts"></div>
+      </div>`;
+    q.options.forEach((opt,i)=>{
+      const b=document.createElement('button');b.className='opt-btn';
+      b.innerHTML=`<span class="opt-letter">${'ABCD'[i]}</span><span>${escapeHtml(opt)}</span>`;
+      b.onclick=()=>answerRace(i);
+      document.getElementById('race-opts').appendChild(b);
+    });
+    renderMiniLeaderboard(state.currentRoom);
+  }
+  function answerRace(idx){
+    const correct = idx===state.questions[state.currentQ].correct;
+    recordAnswer(correct);
+    if(correct){
+      state.raceProgress=Math.min(100,state.raceProgress+20);
+      state.score+=15;
+      toast('+20% progress!');
+    } else toast('Wrong — no progress');
+    updatePlayerData({progress: state.raceProgress});
+    renderMiniLeaderboard(state.currentRoom);
+    state.currentQ++;
+    if(state.raceProgress>=100){ updatePlayerData({finishedAt:Date.now()}); showResults(); return; }
+    if(state.currentQ>=state.questions.length) state.currentQ=0;
+    renderRace();
+  }
+
+  /* ===== LEADERBOARD (end of game) & RESULTS ===== */
+  function buildLeaderboardHtml(room, options){
+    options = options || {};
+    const players = (room && room.players) ? Object.values(room.players) : [];
+    if(!players.length){
+      return '<p class="empty-note" style="text-align:center">No other players yet.</p>';
+    }
+
+    if(options.mode === 'race'){
+      players.sort((a,b)=>{
+        const pa = a.progress != null ? a.progress : 0;
+        const pb = b.progress != null ? b.progress : 0;
+        if(pb !== pa) return pb - pa;
+        return (b.score||0) - (a.score||0);
+      });
+    } else {
+      players.sort((a,b)=>(b.score||0)-(a.score||0));
+    }
+
+    let ranks = [];
+    let currentRank = 1;
+    for(let i=0;i<players.length;i++){
+      if(i>0){
+        const same = options.mode === 'race'
+          ? ((players[i].progress||0)===(players[i-1].progress||0) && (players[i].score||0)===(players[i-1].score||0))
+          : ((players[i].score||0)===(players[i-1].score||0));
+        if(!same) currentRank = i+1;
+      }
+      ranks.push(currentRank);
+    }
+
+    const medals = {1:'🥇',2:'🥈',3:'🥉'};
+    const statusMap = {passed:'PASSED',failed:'FAILED',won:'WON',lost:'LOST',draw:'DRAW'};
+    let html = '<div class="board-list">';
+    players.forEach((p,i)=>{
+      const rank = ranks[i];
+      const isMe = state.playerName && p.name === state.playerName;
+      let rankClass = '';
+      if(rank===1) rankClass='rank-1';
+      else if(rank===2) rankClass='rank-2';
+      else if(rank===3) rankClass='rank-3';
+      if(isMe) rankClass += ' me';
+
+      const medal = medals[rank] || '';
+      const rankLabel = medal ? medal : String(rank);
+
+      let extra = '';
+      if(options.mode === 'race' && p.progress != null){
+        extra = `<span class="board-progress">${p.progress}%</span>`;
+      }
+      if(options.showStatus && p.status){
+        const cls = (p.status==='passed'||p.status==='won') ? 'passed' : (p.status==='draw' ? 'draw' : 'failed');
+        extra += `<span class="board-status ${cls}">${statusMap[p.status]||p.status.toUpperCase()}</span>`;
+      }
+
+      html += `<div class="board-row ${rankClass}" style="animation-delay:${i*0.05}s">
+        <div class="board-rank">${rankLabel}</div>
+        <div class="board-name">${escapeHtml(p.name)}${isMe?' (You)':''}</div>
+        <div class="board-score">${p.score||0}</div>
+        ${extra}
+      </div>`;
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function refreshResultsLeaderboard(room){
+    const lbArea = document.getElementById('leaderboard-area');
+    if(!lbArea) return;
+    let opts = {};
+    if(state.category==='race') opts.mode = 'race';
+    if(state.category==='tiktak' || state.category==='sticko') opts.showStatus = true;
+    lbArea.innerHTML = `<p class="eyebrow" style="margin-bottom:12px">Leaderboard</p>` + buildLeaderboardHtml(room, opts);
+  }
+
+  function showResults(){
+    if(state.timer){clearInterval(state.timer);state.timer=null}
+    const extra = {};
+    if(state.category==='race') extra.progress = state.raceProgress;
+    if(state.category==='sticko'){
+      extra.status = state.gameStatus || (state.score >= state.passingScore ? 'passed' : 'failed');
+    }
+    extra.finishedAt = Date.now();
+    updatePlayerData(extra);
+
+    document.getElementById('final-score').textContent = state.score;
+    let title='Great job!', msg='You finished the game.';
+    if(state.score>=80){title='Amazing!';msg='Outstanding performance! 🎉'}
+    else if(state.score>=40){title='Well done!';msg='Solid effort!'}
+
+    if(state.category==='race' && state.raceProgress>=100){
+      title='You finished the race!';msg='Great pace — check the leaderboard.';
+    }
+    if(state.category==='sticko'){
+      if(state.score >= state.passingScore){
+        title='🎉 YOU PASSED!';
+        msg=`Congratulations! You reached the required passing score of ${state.passingScore}.`;
+      } else {
+        title='Game Complete';
+        msg=`You used all Stick-O pieces. Passing score was ${state.passingScore}.`;
+      }
+    }
+    if(state.category==='tiktak'){
+      if(state.gameStatus==='won'){title='🎉 You Won!';msg='Great trivia and great strategy!';}
+      else {title="It's a Draw!";msg='The board filled up — nice effort!';}
+    }
+
+    document.getElementById('results-title').textContent=title;
+    document.getElementById('results-message').textContent=msg;
+
+    const badgeEl = document.getElementById('results-pass-badge');
+    if(state.category==='sticko'){
+      const passed = state.score >= state.passingScore;
+      badgeEl.innerHTML = `<span class="pass-badge ${passed?'passed':'failed'}">${passed?'PASSED':'FAILED'}</span>`;
+    } else if(state.category==='tiktak'){
+      const st = state.gameStatus;
+      const cls = st==='won'?'passed':'draw';
+      const label = st==='won'?'WON':'DRAW';
+      badgeEl.innerHTML = `<span class="pass-badge ${cls}">${label}</span>`;
+    } else {
+      badgeEl.innerHTML = '';
+    }
+
+    const needsLb = ['spin','brain','race','tiktak','sticko','quiz'].includes(state.category);
+    if(needsLb && state.currentRoom){
+      refreshResultsLeaderboard(state.currentRoom);
+    } else {
+      document.getElementById('leaderboard-area').innerHTML = '';
+    }
+
+    go('results');
+  }
+
+  function resetAll(){
+    if(state.timer) clearInterval(state.timer);
+    detachRoomListener();
+    const keepTeacher = state.teacher;
+    Object.assign(state,{
+      category:null,role:null,code:null,isTeacher:false,playerName:null,playerKey:null,
+      questions:[],challenges:[],currentQ:0,answers:[],score:0,timer:null,
+      raceProgress:0,wheelRotation:0,
+      usedStickos:[],stickoAttempts:{},selectedSticko:null,passingScore:50,gameStatus:null,ttt:null,
+      currentRoom:null,_enteredPlay:false,
+      correctAnswers:0,wrongAnswers:0,questionsAnswered:0,challengesTriggered:0,challengesCompleted:0,
+      dashboardFlow:false,editingGameId:null,hostingGameId:null,hostingSaved:false,
+      pendingSecQ:null,pendingSecAns:null,pendingTeacherId:null,
+      teacher: keepTeacher
+    });
+    const codeInput=document.getElementById('in-join-code'); if(codeInput) codeInput.value='';
+    const nameInput=document.getElementById('in-join-name'); if(nameInput) nameInput.value='';
+    go('welcome');
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!firebaseReady){
+      const setupEl = document.getElementById('setup-required');
+      const appEl = document.getElementById('app');
+      if(setupEl) setupEl.style.display='flex';
+      if(appEl) appEl.style.display='none';
+      return;
+    }
+    cleanupOldRooms();
+    restoreTeacherSession();
+    const inp=document.getElementById('in-join-code');
+    if(inp) inp.addEventListener('input',()=>{inp.value=inp.value.toUpperCase().replace(/[^A-Z0-9]/g,'')});
+    const nameInp=document.getElementById('in-join-name');
+    if(nameInp) nameInp.addEventListener('input',()=>{nameInp.value=nameInp.value.replace(/<[^>]*>/g,'')});
+  });
+  </script>
+  </body>
+  </html>
