@@ -70,6 +70,9 @@ input,textarea,select{font-family:inherit}
 h1,h2,h3{font-family:var(--font-display);margin:0;font-weight:600}
 
 .brand-tag{position:fixed;top:26px;right:26px;z-index:5;font-family:var(--font-mono);font-size:12px;letter-spacing:.12em;color:var(--paper-faint);text-transform:uppercase;display:none;pointer-events:none}
+.admin-corner{position:fixed;bottom:26px;right:26px;z-index:5;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:none}
+.admin-corner a{color:var(--paper-faint);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.admin-corner a:hover{color:var(--paper-dim)}
 
 /* Welcome */
 .marquee-wrap{text-align:center;max-width:720px}
@@ -333,6 +336,14 @@ table.mon-table tr.me-row{background:rgba(167,139,250,.06)}
 .pass-badge.passed{background:rgba(74,222,176,.2);color:var(--teal)}
 .pass-badge.failed{background:rgba(255,107,138,.2);color:var(--coral)}
 .pass-badge.draw{background:rgba(255,193,7,.2);color:var(--amber)}
+.admin-teacher-row{background:var(--curtain);border:1.5px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.admin-teacher-row .at-name{font-weight:700;font-size:15px}
+.admin-teacher-row .at-meta{font-size:12.5px;color:var(--paper-faint)}
+.admin-game-row{background:var(--curtain);border:1.5px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.admin-q-item{padding:14px 16px;border-radius:12px;margin-bottom:8px;border:1.5px solid var(--line);background:rgba(245,240,255,.03);text-align:left}
+.admin-q-item .aq-text{font-weight:700;font-size:14px;margin-bottom:8px}
+.admin-q-opt{font-size:13px;color:var(--paper-dim);padding:3px 0}
+.admin-q-opt.correct{color:var(--teal);font-weight:700}
 .setup-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px 24px}
 .setup-wrap ol{color:var(--paper-dim);line-height:1.9;padding-left:22px;margin-bottom:18px;font-size:14.5px}
 .setup-wrap code{background:rgba(245,240,255,.08);padding:2px 7px;border-radius:6px;font-family:var(--font-mono);font-size:13px;color:var(--purple-bright)}
@@ -365,6 +376,7 @@ table.mon-table tr.me-row{background:rgba(167,139,250,.06)}
 
 <div id="app">
 <div class="brand-tag" id="brand-tag">🎬 Showtime</div>
+<div class="admin-corner" id="admin-corner"><a href="javascript:void(0)" onclick="go('admin-login')">Admin</a></div>
 
 <!-- WELCOME -->
 <section class="screen active" id="screen-welcome">
@@ -410,9 +422,70 @@ table.mon-table tr.me-row{background:rgba(167,139,250,.06)}
   </div>
 </section>
 
+<!-- ADMIN LOGIN -->
+<section class="screen" id="screen-admin-login">
+  <button class="back-btn" onclick="go('role')">← Back</button>
+  <div class="panel">
+    <p class="eyebrow">Admin</p>
+    <h2 style="font-size:26px;margin-bottom:22px">Admin sign in</h2>
+    <div class="field"><label for="adm-username">Username</label><input id="adm-username" autocomplete="off"></div>
+    <div class="field"><label for="adm-password">Password</label><input id="adm-password" type="password" autocomplete="off"></div>
+    <p class="error-msg" id="admin-error"></p>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="adminLogin()">Log in →</button>
+  </div>
+</section>
+
+<!-- ADMIN DASHBOARD -->
+<section class="screen" id="screen-admin-dashboard">
+  <div class="dash-head">
+    <div>
+      <p class="eyebrow" style="margin-bottom:6px">Admin</p>
+      <h2 style="font-size:28px">All teachers</h2>
+    </div>
+    <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
+      <button class="btn btn-teal btn-sm" onclick="adminJoinAsStudent()">🎮 Join a game</button>
+      <button class="btn btn-ghost btn-sm" onclick="go('welcome')">🏠 Home</button>
+      <button class="btn btn-danger btn-sm" onclick="adminLogout()">Log out</button>
+    </div>
+  </div>
+  <div id="admin-teachers-list" style="width:100%;max-width:920px"></div>
+</section>
+
+<!-- ADMIN TEACHER DETAIL -->
+<section class="screen" id="screen-admin-teacher-detail">
+  <button class="back-btn" onclick="go('admin-dashboard')">← Back to teachers</button>
+  <div class="waiting-wrap" style="max-width:640px">
+    <p class="eyebrow" id="admin-detail-eyebrow">Teacher</p>
+    <h2 style="font-size:26px;margin-bottom:18px" id="admin-detail-title">Games</h2>
+    <div id="admin-detail-games" style="width:100%;text-align:left"></div>
+    <p class="dash-section-title" id="admin-detail-history-title" style="max-width:none;display:none">Game history</p>
+    <div id="admin-detail-history" style="width:100%;text-align:left"></div>
+  </div>
+</section>
+
+<!-- ADMIN SESSION RESULTS (full leaderboard + every student's answers) -->
+<section class="screen" id="screen-admin-session-detail">
+  <button class="back-btn" onclick="go('admin-teacher-detail')">← Back to teacher</button>
+  <div class="waiting-wrap" style="max-width:640px">
+    <p class="eyebrow" id="admin-session-eyebrow">Session results</p>
+    <h2 style="font-size:26px;margin-bottom:18px" id="admin-session-title">Results</h2>
+    <div id="admin-session-leaderboard" style="width:100%"></div>
+  </div>
+</section>
+
+<!-- ADMIN GAME QUESTIONS -->
+<section class="screen" id="screen-admin-game-detail">
+  <button class="back-btn" onclick="go('admin-teacher-detail')">← Back to teacher</button>
+  <div class="waiting-wrap" style="max-width:640px">
+    <p class="eyebrow" id="admin-qdetail-eyebrow">Game</p>
+    <h2 style="font-size:26px;margin-bottom:18px" id="admin-qdetail-title">Questions</h2>
+    <div id="admin-qdetail-list" style="width:100%;text-align:left"></div>
+  </div>
+</section>
+
 <!-- STUDENT JOIN -->
 <section class="screen" id="screen-student-join">
-  <button class="back-btn" onclick="go('role')">← Back</button>
+  <button class="back-btn" onclick="backFromStudentJoin()">← Back</button>
   <div class="panel">
     <p class="eyebrow">Join a game</p>
     <h2 style="font-size:26px;margin-bottom:24px">Enter your details</h2>
@@ -667,8 +740,15 @@ const state = {
   editingGameId: null,      // set when editing a saved game
   hostingGameId: null,      // set when hosting a saved game (links room -> teacherGames)
   hostingSaved: false,
-  pendingSecQ: null, pendingSecAns: null, pendingTeacherId: null
+  pendingSecQ: null, pendingSecAns: null, pendingTeacherId: null,
+  /* --- admin --- */
+  isAdmin: false, isAdminJoin: false, adminViewingTeacherId: null, adminViewingGameId: null
 };
+
+/* Single hardcoded admin account. The password is never stored in
+   plaintext — only its SHA-256 hash is compared against at login. */
+const ADMIN_USERNAME = 'dextraviel';
+const ADMIN_PASSWORD_HASH = 'b08b85f5f2adbb1f7cbc7eb6a43307587c49978978983b33ea928e1b57c9730b';
 
 const LABELS = {
   quiz: 'Quiz',
@@ -845,6 +925,11 @@ function go(key){
   document.getElementById('screen-'+key).classList.add('active');
   const brand=document.getElementById('brand-tag');
   if(brand) brand.style.display = key==='welcome' ? 'none' : 'block';
+  const adminCorner=document.getElementById('admin-corner');
+  if(adminCorner){
+    const hideOn = ['play','results','admin-login','admin-dashboard','admin-teacher-detail','admin-game-detail','admin-session-detail'];
+    adminCorner.style.display = hideOn.includes(key) ? 'none' : 'block';
+  }
   window.scrollTo(0,0);
 }
 function toast(msg){
@@ -1010,6 +1095,197 @@ async function forgotReset(){
     setTimeout(()=>{ go('teacher-auth'); switchAuthTab('login'); }, 1400);
   }catch(e){
     console.error(e); err.textContent='Could not reset the password — check your connection.';err.classList.add('show');
+  }
+}
+
+/* ===================================================================
+  ADMIN — read-only view of every teacher account and their games.
+  A single hardcoded login gates this; it is a client-side check only
+  (there is no separate admin account in Firebase), so it keeps out
+  casual visitors but is not a substitute for real server-side auth.
+  =================================================================== */
+async function adminLogin(){
+  const err=document.getElementById('admin-error'); err.classList.remove('show');
+  const uname = document.getElementById('adm-username').value.trim();
+  const pass = document.getElementById('adm-password').value;
+  if(!uname || !pass){err.textContent='Enter the username and password.';err.classList.add('show');return}
+  if(uname !== ADMIN_USERNAME){err.textContent='Incorrect username or password.';err.classList.add('show');return}
+  const hash = await sha256Hex(pass);
+  if(hash !== ADMIN_PASSWORD_HASH){err.textContent='Incorrect username or password.';err.classList.add('show');return}
+  state.isAdmin = true;
+  document.getElementById('adm-username').value='';
+  document.getElementById('adm-password').value='';
+  go('admin-dashboard');
+  renderAdminDashboard();
+}
+function adminLogout(){
+  state.isAdmin = false;
+  state.isAdminJoin = false;
+  state.adminViewingTeacherId = null;
+  state.adminViewingGameId = null;
+  go('welcome');
+}
+
+function adminJoinAsStudent(){
+  state.isAdminJoin = true;
+  state.role = 'student';
+  state.isTeacher = false;
+  go('student-join');
+}
+function backFromStudentJoin(){
+  if(state.isAdminJoin){
+    state.isAdminJoin = false;
+    go('admin-dashboard');
+  } else {
+    go('role');
+  }
+}
+
+async function renderAdminDashboard(){
+  const wrap = document.getElementById('admin-teachers-list');
+  wrap.innerHTML = '<p class="empty-note">Loading teachers…</p>';
+  try{
+    const snap = await db.ref('teachers').once('value');
+    const teachers = snap.val() || {};
+    const ids = Object.keys(teachers);
+    if(!ids.length){ wrap.innerHTML = '<p class="empty-note">No teacher accounts yet.</p>'; return; }
+    const gamesSnap = await db.ref('teacherGames').once('value');
+    const allGames = gamesSnap.val() || {};
+    wrap.innerHTML = '';
+    ids.sort((a,b)=>(teachers[a].name||'').localeCompare(teachers[b].name||'')).forEach(tid=>{
+      const t = teachers[tid];
+      const gameCount = allGames[tid] ? Object.keys(allGames[tid]).length : 0;
+      const when = t.createdAt ? new Date(t.createdAt).toLocaleDateString() : '';
+      const row = document.createElement('div'); row.className='admin-teacher-row';
+      row.innerHTML = `<div>
+          <div class="at-name">${escapeHtml(t.name||'Unnamed')}</div>
+          <div class="at-meta">@${escapeHtml(t.username||tid)}${when?' • Joined '+when:''} • ${gameCount} saved game${gameCount===1?'':'s'}</div>
+        </div>
+        <button class="btn btn-ghost btn-xs" onclick="viewAdminTeacher('${tid}')">View games</button>`;
+      wrap.appendChild(row);
+    });
+  }catch(e){
+    console.error(e);
+    wrap.innerHTML = '<p class="empty-note">Could not load teachers — check your connection.</p>';
+  }
+}
+
+async function viewAdminTeacher(tid){
+  state.adminViewingTeacherId = tid;
+  const list = document.getElementById('admin-detail-games');
+  const histList = document.getElementById('admin-detail-history');
+  list.innerHTML = '<p class="empty-note">Loading…</p>';
+  histList.innerHTML = '';
+  go('admin-teacher-detail');
+  try{
+    const [teacherSnap, gamesSnap, sessionsSnap] = await Promise.all([
+      teacherRef(tid).once('value'),
+      teacherGamesRef(tid).once('value'),
+      teacherSessionsRef(tid).once('value')
+    ]);
+    const t = teacherSnap.val();
+    if(!t){ list.innerHTML = '<p class="empty-note">Teacher not found.</p>'; return; }
+    document.getElementById('admin-detail-title').textContent = t.name || 'Teacher';
+    document.getElementById('admin-detail-eyebrow').textContent = '@'+(t.username||tid);
+
+    const games = gamesSnap.val() || {};
+    const gameIds = Object.keys(games);
+    if(!gameIds.length){ list.innerHTML = '<p class="empty-note">This teacher has no saved games yet.</p>'; }
+    else{
+      list.innerHTML = '';
+      gameIds.sort((a,b)=>(games[b].updatedAt||0)-(games[a].updatedAt||0)).forEach(gid=>{
+        const g = games[gid];
+        const when = g.updatedAt ? new Date(g.updatedAt).toLocaleDateString() : '';
+        const row = document.createElement('div'); row.className='admin-game-row';
+        row.innerHTML = `<div>
+            <div class="at-name">${escapeHtml(g.name||'Untitled game')}</div>
+            <div class="at-meta">${LABELS[g.category]||g.category} • ${(g.questions||[]).length} questions${when?' • Edited '+when:''}</div>
+          </div>
+          <button class="btn btn-ghost btn-xs" onclick="viewAdminGame('${gid}')">View questions</button>`;
+        list.appendChild(row);
+      });
+    }
+
+    const sessions = sessionsSnap.val() || {};
+    const sessionIds = Object.keys(sessions);
+    document.getElementById('admin-detail-history-title').style.display = sessionIds.length ? 'block' : 'none';
+    if(!sessionIds.length){ histList.innerHTML = ''; }
+    else{
+      sessionIds.sort((a,b)=>(sessions[b].finishedAt||0)-(sessions[a].finishedAt||0)).slice(0,30).forEach(sid=>{
+        const s = sessions[sid];
+        const players = s.players ? Object.values(s.players) : [];
+        const count = players.length;
+        const winner = players.slice().sort((a,b)=>(b.score||0)-(a.score||0))[0];
+        const when = s.finishedAt ? new Date(s.finishedAt).toLocaleString() : '';
+        const row = document.createElement('div'); row.className='hist-row';
+        row.innerHTML = `<div>
+            <div class="hi-name">${escapeHtml(s.name||LABELS[s.category]||'Game')}</div>
+            <div class="hi-meta">${when} • ${count} student${count===1?'':'s'}${winner?' • Winner: '+escapeHtml(winner.name):''}</div>
+          </div>
+          <button class="btn btn-ghost btn-xs" onclick="viewAdminSession('${tid}','${sid}')">View results</button>`;
+        histList.appendChild(row);
+      });
+    }
+  }catch(e){
+    console.error(e);
+    list.innerHTML = '<p class="empty-note">Could not load this teacher\'s games.</p>';
+  }
+}
+
+async function viewAdminSession(tid, sid){
+  const area = document.getElementById('admin-session-leaderboard');
+  area.innerHTML = '<p class="empty-note">Loading…</p>';
+  go('admin-session-detail');
+  try{
+    const snap = await teacherSessionsRef(tid).child(sid).once('value');
+    const s = snap.val();
+    if(!s){ area.innerHTML = '<p class="empty-note">Session not found.</p>'; return; }
+    document.getElementById('admin-session-title').textContent = s.name || LABELS[s.category] || 'Results';
+    document.getElementById('admin-session-eyebrow').textContent = s.finishedAt ? new Date(s.finishedAt).toLocaleString() : 'Session results';
+    const opts = {showAnswers:true, isAdminViewer:true};
+    if(s.category==='race') opts.mode='race';
+    if(s.category==='tiktak' || s.category==='sticko') opts.showStatus=true;
+    area.innerHTML = buildLeaderboardHtml({players:s.players||{}}, opts);
+  }catch(e){
+    console.error(e);
+    area.innerHTML = '<p class="empty-note">Could not load results.</p>';
+  }
+}
+
+async function viewAdminGame(gid){
+  state.adminViewingGameId = gid;
+  const tid = state.adminViewingTeacherId;
+  const list = document.getElementById('admin-qdetail-list');
+  list.innerHTML = '<p class="empty-note">Loading…</p>';
+  go('admin-game-detail');
+  try{
+    const snap = await teacherGamesRef(tid).child(gid).once('value');
+    const g = snap.val();
+    if(!g){ list.innerHTML = '<p class="empty-note">Game not found.</p>'; return; }
+    document.getElementById('admin-qdetail-title').textContent = g.name || 'Questions';
+    document.getElementById('admin-qdetail-eyebrow').textContent = LABELS[g.category]||g.category;
+    const letters = ['A','B','C','D'];
+    const qs = g.questions || [];
+    let html = '';
+    if(g.category==='sticko' && g.passingScore!=null){
+      html += `<p class="hint" style="margin-bottom:14px">Passing score: <b style="color:var(--paper)">${g.passingScore}</b></p>`;
+    }
+    qs.forEach((q,i)=>{
+      html += `<div class="admin-q-item">
+        <div class="aq-text">${i+1}. ${escapeHtml(q.text)}${q.points!=null?` <span style="color:var(--paper-faint);font-weight:400;font-size:12px">(+${q.points} pts)</span>`:''}</div>
+        ${(q.options||[]).map((o,oi)=>`<div class="admin-q-opt ${oi===q.correct?'correct':''}">${letters[oi]}. ${escapeHtml(o)}${oi===q.correct?' ✓':''}</div>`).join('')}
+      </div>`;
+    });
+    if(g.category==='tiktak' && g.challenges && g.challenges.length){
+      html += '<p class="dash-section-title" style="margin:24px 0 10px;max-width:none">⚡ Challenges</p>';
+      g.challenges.forEach((c,i)=>{
+        html += `<div class="admin-q-item"><div class="aq-text">${i+1}. ${escapeHtml(c.text)} <span style="color:var(--paper-faint);font-weight:400;font-size:12px">(${c.timeLimit||15}s)</span></div></div>`;
+      });
+    }
+    list.innerHTML = html || '<p class="empty-note">No questions in this game.</p>';
+  }catch(e){
+    console.error(e);
+    list.innerHTML = '<p class="empty-note">Could not load these questions.</p>';
   }
 }
 
@@ -1413,7 +1689,8 @@ async function submitJoin(){
       correctAnswers:0,wrongAnswers:0,questionsAnswered:0,
       questionsRemaining:(room.questions||[]).length,
       challengesTriggered:0,challengesCompleted:0,
-      currentQuestion:0,lastAction:null,lastActionAt:Date.now(),finishedAt:null
+      currentQuestion:0,lastAction:null,lastActionAt:Date.now(),finishedAt:null,
+      adminPlayer: !!state.isAdminJoin
     };
     await db.ref(`rooms/${code}/players/${key}`).set(playerRecord);
     state.code=code;state.playerName=name;state.playerKey=key;state.category=room.category;
@@ -2151,7 +2428,11 @@ function buildLeaderboardHtml(room, options){
     let viewBtn = '';
     let panel = '';
     if(options.showAnswers){
-      const log = Array.isArray(p.answerLog) ? p.answerLog : (p.answerLog ? Object.values(p.answerLog) : []);
+      let log = Array.isArray(p.answerLog) ? p.answerLog : (p.answerLog ? Object.values(p.answerLog) : []);
+      // A row played by the admin never reveals its real answers unless the
+      // viewer is the admin themself — the panel just looks like an
+      // untracked session, same as any legacy game with no answer log.
+      if(p.adminPlayer && !options.isAdminViewer) log = [];
       const pid = 'ans-' + i;
       viewBtn = `<button type="button" class="btn btn-ghost btn-xs" onclick="toggleAnswers('${pid}')">View answers</button>`;
       panel = `<div class="answers-panel" id="${pid}">${buildAnswerLogHtml(log)}</div>`;
@@ -2240,6 +2521,8 @@ function resetAll(){
   if(state.timer) clearInterval(state.timer);
   detachRoomListener();
   const keepTeacher = state.teacher;
+  const keepAdmin = state.isAdmin;
+  const wasAdminJoin = state.isAdminJoin;
   Object.assign(state,{
     category:null,role:null,code:null,isTeacher:false,playerName:null,playerKey:null,
     questions:[],challenges:[],currentQ:0,answers:[],score:0,timer:null,
@@ -2249,11 +2532,17 @@ function resetAll(){
     correctAnswers:0,wrongAnswers:0,questionsAnswered:0,answerLog:[],challengesTriggered:0,challengesCompleted:0,
     dashboardFlow:false,editingGameId:null,hostingGameId:null,hostingSaved:false,
     pendingSecQ:null,pendingSecAns:null,pendingTeacherId:null,
-    teacher: keepTeacher
+    teacher: keepTeacher,
+    isAdmin: keepAdmin, isAdminJoin:false, adminViewingTeacherId:null, adminViewingGameId:null
   });
   const codeInput=document.getElementById('in-join-code'); if(codeInput) codeInput.value='';
   const nameInput=document.getElementById('in-join-name'); if(nameInput) nameInput.value='';
-  go('welcome');
+  if(keepAdmin && wasAdminJoin){
+    go('admin-dashboard');
+    renderAdminDashboard();
+  } else {
+    go('welcome');
+  }
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
